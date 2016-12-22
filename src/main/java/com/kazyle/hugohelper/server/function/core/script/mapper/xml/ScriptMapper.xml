@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kazyle.hugohelper.server.function.core.script.mapper.ScriptMapper">
+
+    <resultMap id="ScriptResultMap" type="com.kazyle.hugohelper.server.function.core.script.entity.Script">
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="type" property="type" jdbcType="INTEGER" typeHandler="org.apache.ibatis.type.EnumOrdinalTypeHandler"/>
+        <result column="status" property="status" jdbcType="INTEGER" typeHandler="org.apache.ibatis.type.EnumOrdinalTypeHandler"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+
+    </resultMap>
+
+    <sql id="select_fields">
+        t.id,
+        t.name,
+        t.key,
+        t.user_id,
+        t.path,
+        t.version,
+        t.type,
+        t.status,
+        t.remark,
+        t.create_date
+    </sql>
+
+    <!--获取账号列表-->
+    <select id="queryList" parameterType="long" resultMap="ScriptResultMap">
+        select
+            <include refid="select_fields" />
+        from
+            hg_script t
+        where
+            t.user_id = #{userId}
+        order by
+            t.status desc, t.key asc, t.version desc, t.create_date desc
+    </select>
+
+    <!--获取账号统计-->
+    <select id="queryCount" parameterType="long" resultType="long">
+        select count(t.id) from hg_script t where t.user_id = #{userId}
+    </select>
+
+    <!--添加脚本-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.script.entity.Script">
+        insert into hg_script(
+            `name`, `key`, `user_id`, `path`, `version`,
+            `type`, `status`, `remark`, `create_date`
+        ) values (
+            #{name}, #{key}, #{userId}, #{path}, #{version},
+            #{type, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler},
+            #{status, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler},
+            #{remark}, #{createDate}
+        )
+    </insert>
+
+    <!--删除脚本-->
+    <delete id="delete" parameterType="long">
+        delete from hg_script where id = #{id}
+    </delete>
+
+    <!--更新脚本状态-->
+    <update id="updateStatus" parameterType="map">
+        update hg_script t
+        <set>
+            t.status = #{status}
+        </set>
+        where
+            t.user_id = #{userId}
+        and
+            t.key = #{key}
+    </update>
+
+    <!--根据账号获取脚本-->
+    <select id="queryByUserId" parameterType="map" resultMap="ScriptResultMap">
+        select
+            <include refid="select_fields" />
+        from
+            hg_script t
+        where
+            t.user_id = #{userId}
+        and
+            t.status = #{status}
+        <if test="scriptIds != null and scriptIds.size > 0">
+            and t.id not in
+            <foreach collection="scriptIds" item="id"  open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+</mapper>

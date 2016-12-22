@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kazyle.hugohelper.server.function.core.account.mapper.AccountMapper">
+
+    <resultMap id="AccountResultMap" type="com.kazyle.hugohelper.server.function.core.account.entity.Account">
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="sheet_id" property="sheetId" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="INTEGER" typeHandler="org.apache.ibatis.type.EnumOrdinalTypeHandler"/>
+        <result column="task_type" property="taskType" jdbcType="INTEGER" typeHandler="org.apache.ibatis.type.EnumOrdinalTypeHandler"/>
+        <result column="master_id" property="masterId" jdbcType="INTEGER"/>
+        <result column="withdraw_balance" property="withdrawBalance" jdbcType="DECIMAL"/>
+        <result column="withdraw_date" property="withdrawDate" jdbcType="DATE"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <resultMap id="AccountSheetResultMap" type="com.kazyle.hugohelper.server.function.core.account.entity.AccountSheet">
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="select_fields">
+        t.id,
+        t.sheet_id,
+        t.user_id,
+        t.mobile,
+        t.alipay,
+        t.phone,
+        t.amount,
+        t.balance,
+        t.withdraw_balance,
+        t.status,
+        t.task_type,
+        t.deadline,
+        t.withdraw_date,
+        t.create_date,
+        t.remark
+    </sql>
+
+    <!--获取账号列表-->
+    <select id="queryList" parameterType="map" resultMap="AccountResultMap">
+        select
+            <include refid="select_fields" />
+        from
+            hg_account t left join hg_account_sheet ts on ts.id = t.sheet_id
+        where
+            t.user_id = #{userId}
+        and
+            t.deleted = #{deleted}
+        <if test="period != null and period != ''">
+            and ts.title = #{period}
+        </if>
+        <if test="period == null or period == ''">
+            and t.sheet_id = 0
+        </if>
+        <if test="status != null and status != ''">
+            and t.status = #{status,typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler}
+        </if>
+        <if test="phone != null and phone != ''">
+            and t.phone = #{phone}
+        </if>
+        <if test="alipay != null and alipay != ''">
+            and t.alipay = #{alipay}
+        </if>
+        <if test="balance != null and balance != 0">
+            and t.balance = #{balance}
+        </if>
+        <if test="sortMap != null">
+            order by
+            <foreach collection="sortMap.keys" separator="," item="key">
+                #{key} ${sortMap[${key}]}
+            </foreach>
+        </if>
+    </select>
+
+    <!--根据日期获取账目-->
+    <select id="queryOneSheet" parameterType="string" resultMap="AccountSheetResultMap">
+        select
+            t.id, t.title, t.user_id, t.create_date
+        from
+            hg_account_sheet t
+        where
+            t.title = #{title}
+    </select>
+
+    <!--创建账目-->
+    <insert id="createSheet" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.account.entity.AccountSheet">
+        insert into hg_account_sheet(
+            `title`, `user_id`, `create_date`
+        ) values(
+            #{title}, #{userId}, #{createDate}
+        )
+    </insert>
+
+    <!--创建账号-->
+    <insert id="create" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.account.entity.Account">
+        insert into hg_account(
+            `sheet_id`, `user_id`, `mobile`, `alipay`, `phone`,
+            `status`, `amount`, `balance`, `withdraw_balance`, `deadline`,
+            `withdraw_date`, `create_date`, `remark`, `task_type`
+        ) values(
+            #{sheetId}, #{userId}, #{mobile}, #{alipay}, #{phone},
+            #{status, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler},
+            #{amount}, #{balance}, #{withdrawBalance}, #{deadline},
+            #{withdrawDate}, #{createDate}, #{remark},
+            #{taskType, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.kazyle.hugohelper.server.function.core.account.entity.Account">
+        update hg_account t
+        set
+            t.sheet_id = #{sheetId},
+            t.mobile = #{mobile},
+            t.alipay = #{alipay},
+            t.phone = #{phone},
+            t.status = #{status, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler},
+            t.task_type = #{taskType, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler},
+            t.amount = #{amount},
+            t.balance = #{balance},
+            t.withdraw_balance = #{withdrawBalance},
+            t.deadline = #{deadline},
+            t.withdraw_date = #{withdrawDate},
+            t.remark = #{remark}
+        where
+            t.id = #{id}
+    </update>
+
+    <select id="queryOne" parameterType="long" resultMap="AccountResultMap">
+        select
+            <include refid="select_fields" />
+        from
+            hg_account t
+        where
+            t.id = #{id}
+    </select>
+
+    <update id="updateDeleted" parameterType="map">
+        update hg_account t
+        set
+            t.deleted = #{deleted}
+        where
+            t.id = #{id}
+    </update>
+
+</mapper>

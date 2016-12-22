@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kazyle.hugohelper.server.function.core.vpn.mapper.VpnMapper">
+
+    <resultMap id="VpnResultMap" type="com.kazyle.hugohelper.server.function.core.vpn.entity.Vpn">
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="INTEGER" typeHandler="org.apache.ibatis.type.EnumOrdinalTypeHandler"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+
+    </resultMap>
+
+    <sql id="select_fields">
+        t.id,
+        t.name,
+        t.host,
+        t.username,
+        t.password,
+        t.user_id,
+        t.status,
+        t.create_date
+    </sql>
+
+    <!--获取VPN列表-->
+    <select id="queryList" parameterType="long" resultMap="VpnResultMap">
+        select
+        <include refid="select_fields" />
+        from
+            hg_vpn t
+        where
+            t.user_id = #{userId}
+        order by
+            t.status asc, t.create_date desc
+    </select>
+
+    <!--获取VPN统计-->
+    <select id="queryCount" parameterType="long" resultType="long">
+        select count(t.id) from hg_vpn t where t.user_id = #{userId}
+    </select>
+
+    <!--添加VPN-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.vpn.entity.Vpn">
+        insert into hg_vpn(
+            `name`, `user_id`, `host`, `username`, `password`,
+            `status`, `create_date`
+        ) values (
+            #{name}, #{userId}, #{host}, #{username}, #{password},
+            #{status, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler},
+            #{createDate}
+        )
+    </insert>
+
+</mapper>

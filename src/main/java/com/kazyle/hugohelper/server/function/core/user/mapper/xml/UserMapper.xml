@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kazyle.hugohelper.server.function.core.user.mapper.UserMapper">
+
+    <resultMap id="UserResultMap" type="com.kazyle.hugohelper.server.function.core.user.entity.User">
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="select_fields">
+        t.id,
+        t.username,
+        t.password,
+        t.realname,
+        t.create_date
+    </sql>
+
+    <!--根据登录账号获取账号-->
+    <select id="findByUsername" parameterType="string" resultMap="UserResultMap">
+        select
+            <include refid="select_fields" />
+        from
+            hg_user t
+        where
+            t.username = #{username}
+    </select>
+
+    <!--获取后台账号列表-->
+    <select id="queryList" resultMap="UserResultMap">
+        select
+            <include refid="select_fields" />
+        from
+            hg_user t
+        order by
+            t.create_date desc
+    </select>
+
+    <!--删除后台账号-->
+    <delete id="delete" parameterType="long">
+        delete from hg_user where id = #{id}
+    </delete>
+
+    <!--添加后台账号-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.user.entity.User">
+        insert into hg_user(
+            username, password, realname, create_date
+        ) values(
+            #{username}, #{password}, #{realname}, #{createDate}
+        )
+    </insert>
+
+    <!--更新后台账号密码-->
+    <update id="updatePassword" parameterType="map">
+        update hg_user t
+        <set>
+            t.password = #{password}
+        </set>
+        where
+            t.id = #{id}
+    </update>
+
+</mapper>
