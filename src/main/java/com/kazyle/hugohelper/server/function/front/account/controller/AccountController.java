@@ -38,15 +38,6 @@ public class AccountController extends BaseFrontController<Account> {
     @RequestMapping({"", "/", "/index"})
     public String index(@CurrentUser User user, AccountSearchDto dto, Model model) {
 
-        /*if (dto.getPeriodDate() == null) {
-            DateTime dateTime = new DateTime();
-            String date = dateTime.toString("yyyy-MM");
-            dto.setPeriod(date);
-            dto.setPeriodDate(dateTime.toDate());
-        } else {
-            DateTime dateTime = new DateTime(dto.getPeriodDate());
-            dto.setPeriod(dateTime.toString("yyyy-MM"));
-        }*/
         model.addAttribute("searchView", dto);
         dto.setUserId(user.getId());
         List<Object[]> accounts = accountService.queryList(dto);

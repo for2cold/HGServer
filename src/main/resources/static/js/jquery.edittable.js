@@ -17,7 +17,6 @@
                 field_templates: false,
                 field_names: false,
                 sort_fields: false,
-                sort_form_id: false,
                 field_valids: false,
                 hasIndex: false,
                 validate_field: function (col_id, value, col_type, $element) {
@@ -144,7 +143,7 @@
                     var col_title = s.headerCols[a] || '';
                     var sort_field = s.sort_fields[a] || '';
                     if (sort_field) {
-                        $table.find('thead tr').append('<th>' + col_title + ' <span class="fa fa-angle-down pointer" data-sort-field="' + sort_field + '"></span></th>');
+                        $table.find('thead tr').append('<th class="pointer" data-sort-field="' + sort_field + '">' + col_title + ' <span class="fa fa-angle-down hidden"></span></th>');
                     } else {
                         $table.find('thead tr').append('<th>' + col_title + '</th>');
                     }
@@ -179,9 +178,7 @@
             checkButtons();
 
             callback && callback();
-            if (s.sort_form_id) {
-                sortEvent(s.sort_form_id);
-            }
+            sortEvent(s.sort_form_id);
         }
 
         // Listener Event
@@ -201,8 +198,48 @@
 
         // 排序
         function sortEvent($formId) {
-            $table.on('click', '[data-sort-field]', function() {
-                console.debug('type-->' + $(this).attr('data-sort-field'));
+            var sortIndex = [];
+            var sortMap = {};
+            $('th[data-sort-field]').click(function() {
+                var field_name = $(this).attr('data-sort-field');
+                var sort_type = $(this).attr('data-sort-type') || 'ASC';
+                $table.find('tbody tr').each(function() {
+                    var $row = $(this);
+                    var value = $row.find('.' + field_name).val();
+                    sortMap[value] = $row;
+                    sortIndex.push(value);
+                });
+                // 排序
+                sortIndex.sort();
+                if (sort_type == 'DESC') {
+                    sortIndex.reverse();
+                }
+                var $first_row = null;
+                var index = 0;
+                for (var i = 0; i < sortIndex.length; i++) {
+                    var key = sortIndex[i];
+                    var $row = sortMap[key];
+                    if (i == 0) {
+                        $first_row = $row;
+                        $first_row.insertBefore($table.find('tbody tr:first'));
+                    } else {
+                        index = i - 1;
+                        $row.insertAfter($table.find('tbody tr').eq(index));
+                    }
+                }
+                if (s.hasIndex) {
+                    updateIndex();
+                }
+                if (sort_type == 'ASC') {
+                    sort_type = 'DESC';
+                    $(this).find('.fa').removeClass('hidden fa-angle-up').addClass('fa-angle-down');
+                } else {
+                    sort_type = 'ASC';
+                    $(this).find('.fa').removeClass('hidden fa-angle-down').addClass('fa-angle-up');
+                }
+                $(this).attr('data-sort-type', sort_type);
+                sortIndex = [];
+                sortMap = {};
             });
         }
 
@@ -377,7 +414,7 @@
 
         // Select all content on click
         $table.on('click', 'input,textarea', function () {
-            $(this).select();
+            //$(this).select();
         });
 
         // Return functions

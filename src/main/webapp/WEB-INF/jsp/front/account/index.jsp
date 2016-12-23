@@ -316,7 +316,7 @@ var $table = $('#accountTable').editTable({
     field_names: ['id', 'mobile', 'amount', 'balance', 'withdraw_balance', 'phone', 'task_type', 'alipay', 'status', 'deadline', 'withdraw_date', 'remark'],
     field_valids: ['', '请填写账号', '', '', '', '', '', '', '请选择状态', '', '', ''],
     row_template: ['index', 'input', 'text', 'input', 'input', 'phone_select', 'task_select', 'alipay_select', 'status_select', 'input', 'input', 'textarea'],
-    headerCols: ['序号','账号', '已赚金额', '余额', '已提金额', '机器', '任务类型', '支付宝', '状态', '任务结束日期', '可提现日期', '备注'],
+    headerCols: ['序号','账号', '已赚金额', '余额', '已提金额', '机器', '任务类型', '支付宝', '状态', '登记日期', '目标日期', '备注'],
     first_row: false,
     hasIndex: true,
     tableClass: 'inputtable',

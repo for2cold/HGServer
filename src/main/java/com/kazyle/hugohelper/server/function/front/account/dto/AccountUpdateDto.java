@@ -1,6 +1,7 @@
 package com.kazyle.hugohelper.server.function.front.account.dto;
 
 import com.kazyle.hugohelper.server.function.core.account.entity.enums.AccountStatus;
+import com.kazyle.hugohelper.server.function.core.account.entity.enums.TaskType;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
@@ -30,6 +31,8 @@ public class AccountUpdateDto implements Serializable {
     private String phone;
 
     private String alipay;
+
+    private TaskType taskType;
 
     private AccountStatus status;
 
@@ -87,6 +90,14 @@ public class AccountUpdateDto implements Serializable {
 
     public void setAlipay(String alipay) {
         this.alipay = alipay;
+    }
+
+    public TaskType getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(TaskType taskType) {
+        this.taskType = taskType;
     }
 
     public AccountStatus getStatus() {

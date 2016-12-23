@@ -41,9 +41,9 @@ public class AccountServiceImpl implements AccountService {
                         pojo.getBalance(),
                         pojo.getWithdrawBalance(),
                         pojo.getPhone(),
+                        pojo.getTaskType(),
                         pojo.getAlipay(),
                         pojo.getStatus(),
-                        pojo.getTaskType(),
                         pojo.getDeadlineText(),
                         pojo.getWithdrawDateText(),
                         pojo.getRemark()
@@ -65,6 +65,7 @@ public class AccountServiceImpl implements AccountService {
         account.setMobile(dto.getMobile());
         account.setBalance(dto.getBalance());
         account.setWithdrawBalance(dto.getWithdrawBalance());
+        account.setTaskType(dto.getTaskType());
         account.setPhone(dto.getPhone());
         account.setAlipay(dto.getAlipay());
         account.setStatus(dto.getStatus());
