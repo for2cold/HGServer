@@ -3,7 +3,9 @@ package com.kazyle.hugohelper.server.function.core.account.mapper;
 import com.kazyle.hugohelper.server.config.annotation.MyBatisMapper;
 import com.kazyle.hugohelper.server.function.core.account.entity.Account;
 import com.kazyle.hugohelper.server.function.core.account.entity.AccountSheet;
+import com.kazyle.hugohelper.server.function.core.account.entity.WithdrawRecord;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountSearchDto;
+import com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -59,4 +61,17 @@ public interface AccountMapper {
      * @param context
      */
     void updateDeleted(Map<String, Object> context);
+
+    /**
+     * 保存提现记录
+     * @param record
+     */
+    void saveRecord(WithdrawRecord record);
+
+    /**
+     * 统计收入信息
+     * @param context
+     * @return
+     */
+    WithdrawResult queryStatistics(Map<String, Object> context);
 }

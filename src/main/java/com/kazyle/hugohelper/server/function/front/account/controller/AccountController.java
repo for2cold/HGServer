@@ -8,6 +8,7 @@ import com.kazyle.hugohelper.server.function.core.account.service.AccountService
 import com.kazyle.hugohelper.server.function.core.user.entity.User;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountSearchDto;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountUpdateDto;
+import com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
@@ -42,6 +43,12 @@ public class AccountController extends BaseFrontController<Account> {
         dto.setUserId(user.getId());
         List<Object[]> accounts = accountService.queryList(dto);
         model.addAttribute("accounts", jsonHelper.toJSONString(accounts));
+
+        // 收入统计
+        if (dto.getPeriodDate() != null) {
+            WithdrawResult withdrawResult = accountService.queryStatistics(user, dto.getPeriodDate());
+            model.addAttribute("withdrawResult", withdrawResult);
+        }
         return viewName("index");
     }
 
@@ -54,7 +61,7 @@ public class AccountController extends BaseFrontController<Account> {
         String msg = "账号添加成功";
         if (dto.getId() != null) {
             msg = "账号更新成功！";
-    }
+        }
         Long id = accountService.saveOrUpdate(user, dto);
 
         entity.setMsg(msg);

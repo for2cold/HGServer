@@ -104,14 +104,20 @@
                                      </select>
                                 </div>
                             </form>
-                            <h3 class="text-center">
+                            <h3>
                                 <c:if test="${not empty searchView.periodDate}">
                                     <fmt:formatDate value="${searchView.periodDate}" pattern="yyyy年MM月"/>
                                 </c:if>
                                 <c:if test="${empty searchView.periodDate}">
                                     空闲
+                                </c:if>账号
+                                <c:if test="${not empty withdrawResult}">
+                                    <span style="font-size: 18px;color:#00acac" class="text-primary">
+                                    <span>总收入：<fmt:formatNumber value="${withdrawResult.amount}" pattern="#,#00.0#"/>，</span>
+                                    <span>${withdrawResult.days}天，</span>
+                                    <span><fmt:formatNumber value="${withdrawResult.averageAmount}" pattern="#,#00.0#"/>/天</span>
+                                    </span>
                                 </c:if>
-                                账号
                             </h3>
                             <div id="accountTable"></div>
                         </div>

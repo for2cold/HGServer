@@ -7,11 +7,15 @@ import com.kazyle.hugohelper.server.config.domain.data.PageImpl;
 import com.kazyle.hugohelper.server.config.domain.data.PageRequest;
 import com.kazyle.hugohelper.server.function.core.account.entity.Account;
 import com.kazyle.hugohelper.server.function.core.account.entity.AccountSheet;
+import com.kazyle.hugohelper.server.function.core.account.entity.WithdrawRecord;
 import com.kazyle.hugohelper.server.function.core.account.mapper.AccountMapper;
+import com.kazyle.hugohelper.server.function.core.user.entity.User;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountSearchDto;
+import com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -62,5 +66,16 @@ public class AccountRepository {
         context.put("id", id);
         context.put("deleted", deleted);
         accountMapper.updateDeleted(context);
+    }
+
+    public void saveRecord(WithdrawRecord record) {
+        accountMapper.saveRecord(record);
+    }
+
+    public WithdrawResult queryStatistics(User user, Date period) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", user.getId());
+        context.put("period", period);
+        return accountMapper.queryStatistics(context);
     }
 }

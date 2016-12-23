@@ -3,12 +3,14 @@ package com.kazyle.hugohelper.server.function.core.account.service.impl;
 import com.google.common.collect.Lists;
 import com.kazyle.hugohelper.server.function.core.account.entity.Account;
 import com.kazyle.hugohelper.server.function.core.account.entity.AccountSheet;
+import com.kazyle.hugohelper.server.function.core.account.entity.WithdrawRecord;
 import com.kazyle.hugohelper.server.function.core.account.entity.enums.AccountStatus;
 import com.kazyle.hugohelper.server.function.core.account.repository.AccountRepository;
 import com.kazyle.hugohelper.server.function.core.account.service.AccountService;
 import com.kazyle.hugohelper.server.function.core.user.entity.User;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountSearchDto;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountUpdateDto;
+import com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
@@ -58,6 +60,7 @@ public class AccountServiceImpl implements AccountService {
     public Long saveOrUpdate(User user, AccountUpdateDto dto) {
 
         Long id = dto.getId();
+        Date today = new Date();
 
         Account account = new Account();
         account.setId(id);
@@ -72,7 +75,7 @@ public class AccountServiceImpl implements AccountService {
         account.setDeadline(dto.getDeadline());
         account.setWithdrawDate(dto.getWithdrawDate());
         account.setRemark(dto.getRemark());
-        account.setCreateDate(new Date());
+        account.setCreateDate(today);
 
         // 获取账目ID
         Long sheetId = null;
@@ -85,7 +88,7 @@ public class AccountServiceImpl implements AccountService {
                 // 添加账号
                 sheet = new AccountSheet();
                 sheet.setTitle(title);
-                sheet.setCreateDate(new Date());
+                sheet.setCreateDate(today);
                 sheet.setUserId(user.getId());
                 accountRepository.createSheet(sheet);
             }
@@ -107,6 +110,8 @@ public class AccountServiceImpl implements AccountService {
                 }
                 account.setAmount(_account.getAmount().add(account.getWithdrawBalance()));
                 account.setWithdrawBalance(new BigDecimal(0));
+            } else if (account.getStatus() == AccountStatus.IDLE && _account.getStatus() == AccountStatus.RECEIVED) {
+                account.setDeadline(null);
             }
             accountRepository.update(account);
         } else {
@@ -115,7 +120,21 @@ public class AccountServiceImpl implements AccountService {
             accountRepository.create(account);
             id = account.getId();
         }
+        if (account.getStatus() == AccountStatus.RECEIVED) {
+            WithdrawRecord record = new WithdrawRecord();
+            record.setUserId(user.getId());
+            record.setAccountId(id);
+            record.setWithdrawBalance(dto.getWithdrawBalance());
+            record.setWithdrawDate(today);
+            accountRepository.saveRecord(record);
+        }
+
         return id;
+    }
+
+    @Override
+    public WithdrawResult queryStatistics(User user, Date periodDate) {
+        return accountRepository.queryStatistics(user, periodDate);
     }
 
     @Override

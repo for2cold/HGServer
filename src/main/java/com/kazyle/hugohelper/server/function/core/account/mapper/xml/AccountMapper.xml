@@ -16,6 +16,15 @@
         <result column="user_id" property="userId" jdbcType="INTEGER"/>
         <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
     </resultMap>
+    <resultMap id="WithdrawRecordResultMap" type="com.kazyle.hugohelper.server.function.core.account.entity.WithdrawRecord">
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="account_id" property="accountId" jdbcType="INTEGER"/>
+        <result column="withdraw_balance" property="withdrawBalance" jdbcType="DECIMAL"/>
+        <result column="withdraw_date" property="withdrawDate" jdbcType="DATE"/>
+    </resultMap>
+    <resultMap id="WithdrawResultMap" type="com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult">
+        <result column="average_amount" property="averageAmount" jdbcType="DECIMAL"/>
+    </resultMap>
 
     <sql id="select_fields">
         t.id,
@@ -141,4 +150,35 @@
             t.id = #{id}
     </update>
 
+    <insert id="saveRecord" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.account.entity.WithdrawRecord">
+        insert into hg_withdraw_record(
+            `account_id`, `user_id`, `withdraw_balance`, `withdraw_date`
+        ) values(
+            #{accountId}, #{userId}, #{withdrawBalance}, #{withdrawDate}
+        )
+    </insert>
+
+    <select id="queryStatistics" parameterType="map" resultMap="WithdrawResultMap">
+        select
+            t.amount,
+            t.days,
+            ifnull(cast(t.amount / t.days as decimal(65, 2)), 0.00) as average_amount
+        from
+            (select
+                ifnull(sum(t1.withdraw_balance), 0) as amount,
+                (select
+                    count(distinct t11.withdraw_date)
+                from hg_withdraw_record t11
+                where
+                    t11.user_id = #{userId}
+                and
+                    date_format(t11.withdraw_date,'%Y-%m') = date_format(#{period},'%Y-%m')
+            ) as days
+            from hg_withdraw_record t1
+            where
+                t1.user_id = #{userId}
+            and
+                date_format(t1.withdraw_date,'%Y-%m') = date_format(#{period},'%Y-%m')
+            ) t
+    </select>
 </mapper>
