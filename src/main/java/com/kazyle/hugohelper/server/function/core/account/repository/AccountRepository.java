@@ -32,7 +32,11 @@ public class AccountRepository {
         Map<String, Object> context = Maps.newHashMap();
         context.put("userId", dto.getUserId());
         context.put("period", dto.getPeriod());
-        context.put("status", dto.getStatus());
+        if (dto.getStatus() == null) {
+            context.put("status", null);
+        } else {
+            context.put("status", dto.getStatus().ordinal());
+        }
         context.put("phone", dto.getPhone());
         context.put("alipay", dto.getAlipay());
         context.put("balance", dto.getBalance());

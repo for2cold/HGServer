@@ -13,6 +13,7 @@ import com.kazyle.hugohelper.server.function.front.account.dto.AccountUpdateDto;
 import com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -97,6 +98,7 @@ public class AccountServiceImpl implements AccountService {
             sheetId = 0L;
         }
         account.setSheetId(sheetId);
+        account.setUpdateTime(DateTimeUtils.currentTimeMillis());
 
         if (id != null) {
             // update

@@ -46,6 +46,8 @@ public class Account implements Serializable {
 
     private boolean deleted = Boolean.FALSE;        // 是否已删除
 
+    private long updateTime;        // 更新时间
+
     public Long getId() {
         return id;
     }
@@ -191,5 +193,13 @@ public class Account implements Serializable {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public long getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(long updateTime) {
+        this.updateTime = updateTime;
     }
 }

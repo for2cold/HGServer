@@ -61,7 +61,7 @@
             and t.sheet_id = 0
         </if>
         <if test="status != null and status != ''">
-            and t.status = #{status,typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler}
+            and t.status = #{status}
         </if>
         <if test="phone != null and phone != ''">
             and t.phone = #{phone}
@@ -72,12 +72,7 @@
         <if test="balance != null and balance != 0">
             and t.balance = #{balance}
         </if>
-        <if test="sortMap != null">
-            order by
-            <foreach collection="sortMap.keys" separator="," item="key">
-                #{key} ${sortMap[${key}]}
-            </foreach>
-        </if>
+        order by t.update_time desc, t.withdraw_balance desc, t.id asc
     </select>
 
     <!--根据日期获取账目-->
@@ -104,13 +99,14 @@
         insert into hg_account(
             `sheet_id`, `user_id`, `mobile`, `alipay`, `phone`,
             `status`, `amount`, `balance`, `withdraw_balance`, `deadline`,
-            `withdraw_date`, `create_date`, `remark`, `task_type`
+            `withdraw_date`, `create_date`, `remark`, `task_type`, `update_time`
         ) values(
             #{sheetId}, #{userId}, #{mobile}, #{alipay}, #{phone},
             #{status, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler},
             #{amount}, #{balance}, #{withdrawBalance}, #{deadline},
             #{withdrawDate}, #{createDate}, #{remark},
-            #{taskType, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler}
+            #{taskType, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler},
+            #{updateTime}
         )
     </insert>
 
@@ -128,7 +124,8 @@
             t.withdraw_balance = #{withdrawBalance},
             t.deadline = #{deadline},
             t.withdraw_date = #{withdrawDate},
-            t.remark = #{remark}
+            t.remark = #{remark},
+            t.update_time = #{updateTime}
         where
             t.id = #{id}
     </update>

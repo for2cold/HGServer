@@ -368,6 +368,7 @@ var $table = $('#accountTable').editTable({
         var withdraw_balance = $row.find('.withdraw_balance').val() || '';
         var phone = $row.find('select.phoneVal').val() || '';
         var alipay = $row.find('select.alipayVal').val() || '';
+        var task_type = $row.find('.task_type').val() || '';
         var status = $row.find('select.statusVal').val() || '';
         var deadline = $row.find('.deadline').val() || '';
         var withdraw_date = $row.find('.withdraw_date').val() || '';
@@ -379,6 +380,7 @@ var $table = $('#accountTable').editTable({
             "withdrawBalance": withdraw_balance,
             "phone": phone,
             "alipay": alipay,
+            "taskType": task_type,
             "status": status,
             "deadline": deadline,
             "withdrawDate": withdraw_date,
