@@ -318,7 +318,7 @@ var $table = $('#accountTable').editTable({
             }
         }
     },
-    sort_fields: ['', '', 'amount', 'balance', 'withdraw_balance', 'phone', '', 'alipay', 'status', 'deadline', 'withdraw_date', ''],
+    data_types: ['', '', 'number', 'number', 'number', 'string', '', 'string', 'number', 'string', 'string', ''],
     field_names: ['id', 'mobile', 'amount', 'balance', 'withdraw_balance', 'phone', 'task_type', 'alipay', 'status', 'deadline', 'withdraw_date', 'remark'],
     field_valids: ['', '请填写账号', '', '', '', '', '', '', '请选择状态', '', '', ''],
     row_template: ['index', 'input', 'text', 'input', 'input', 'phone_select', 'task_select', 'alipay_select', 'status_select', 'input', 'input', 'textarea'],
@@ -433,6 +433,21 @@ var $table = $('#accountTable').editTable({
                 }
             });
         });
+    },
+    row_events: function($row) {
+        $row.find('select').each(function(){
+            $(this).insertAfter($(this).parents('.bootstrap-select'));
+            $(this).closest('td').find('.bootstrap-select').remove();
+            var style = $(this).find('option:selected').attr('data-class');
+            style = style || 'btn-white';
+            $(this).css('display', 'block!important').show().selectpicker().selectpicker('setStyle', style);
+        });
+        $row.find('.deadline').datetimepicker(dateOption).on('changeDate', function(ev) {
+            var startDate = $(this).val();
+            $row.find('.withdraw_date').datetimepicker('setStartDate', startDate);
+            $row.find('.withdraw_date').val('');
+        });
+        $row.find('.withdraw_date').datetimepicker(dateOption);
     }
 });
 $(function() {

@@ -16,7 +16,7 @@
                 row_template: false,
                 field_templates: false,
                 field_names: false,
-                sort_fields: false,
+                data_types: false,
                 field_valids: false,
                 hasIndex: false,
                 validate_field: function (col_id, value, col_type, $element) {
@@ -29,6 +29,9 @@
 
                 },
                 update_callback: function($row, data) {
+
+                },
+                row_events: function($row) {
 
                 }
             }, options),
@@ -141,9 +144,9 @@
                 // Table headers
                 for (a = 0; a < col.length; a += 1) {
                     var col_title = s.headerCols[a] || '';
-                    var sort_field = s.sort_fields[a] || '';
-                    if (sort_field) {
-                        $table.find('thead tr').append('<th class="pointer" data-sort-field="' + sort_field + '">' + col_title + ' <span class="fa fa-angle-down hidden"></span></th>');
+                    var data_type = s.data_types[a] || '';
+                    if (data_type) {
+                        $table.find('thead tr').append('<th class="pointer" data-type="' + data_type + '">' + col_title + ' <span class="fa fa-angle-down hidden"></span></th>');
                     } else {
                         $table.find('thead tr').append('<th>' + col_title + '</th>');
                     }
@@ -178,7 +181,7 @@
             checkButtons();
 
             callback && callback();
-            sortEvent(s.sort_form_id);
+            sortEvent();
         }
 
         // Listener Event
@@ -197,39 +200,12 @@
         }
 
         // 排序
-        function sortEvent($formId) {
-            var sortIndex = [];
-            var sortMap = {};
-            $('th[data-sort-field]').click(function() {
-                var field_name = $(this).attr('data-sort-field');
+        function sortEvent() {
+            $('th[data-type]').click(function() {
+                var index = $table.find('thead th').index($(this));
+                var type = $(this).attr('data-type');
                 var sort_type = $(this).attr('data-sort-type') || 'ASC';
-                $table.find('tbody tr').each(function() {
-                    var $row = $(this);
-                    var value = $row.find('.' + field_name).val();
-                    sortMap[value] = $row;
-                    sortIndex.push(value);
-                });
-                // 排序
-                sortIndex.sort();
-                if (sort_type == 'DESC') {
-                    sortIndex.reverse();
-                }
-                var $first_row = null;
-                var index = 0;
-                for (var i = 0; i < sortIndex.length; i++) {
-                    var key = sortIndex[i];
-                    var $row = sortMap[key];
-                    if (i == 0) {
-                        $first_row = $row;
-                        $first_row.insertBefore($table.find('tbody tr:first'));
-                    } else {
-                        index = i - 1;
-                        $row.insertAfter($table.find('tbody tr').eq(index));
-                    }
-                }
-                if (s.hasIndex) {
-                    updateIndex();
-                }
+                sortTable(index, type, sort_type);
                 if (sort_type == 'ASC') {
                     sort_type = 'DESC';
                     $(this).find('.fa').removeClass('hidden fa-angle-up').addClass('fa-angle-down');
@@ -238,9 +214,75 @@
                     $(this).find('.fa').removeClass('hidden fa-angle-down').addClass('fa-angle-up');
                 }
                 $(this).attr('data-sort-type', sort_type);
-                sortIndex = [];
-                sortMap = {};
             });
+        }
+
+        function sortTable(index, type, sort_type) {
+            var trsValue = new Array();
+            var dataMap = {};
+            var SEPARATOR = '.separator';
+            $table.find('tbody tr').each(function (_index) {
+                var tds = $(this).find('td');
+                var value = $(tds[index]).find('input').val();
+                value = value || $(tds[index]).find('select').val();
+                value = value || $(tds[index]).find('textarea').val();
+                if (!value) {
+                    if (type === 'number') {
+                        value = 0;
+                    } else if (type === 'string') {
+                        value = '';
+                    }
+                }
+                //获取行号为index列的某一行的单元格内容与该单元格所在行的行内容添加到数组trsValue中
+                var text = type + SEPARATOR + value + SEPARATOR + _index;
+                trsValue.push(text);
+                dataMap[_index] = $(this).clone(true);
+                $(this).html('');
+            });
+            var time = new Date().getTime();
+            var len = trsValue.length;
+            if (sort_type == 'DESC') {
+                //如果已经排序了则直接倒序
+                trsValue.reverse();
+            } else {
+                for (var i = 0; i < len; i++) {
+                    //split() 方法用于把一个字符串分割成字符串数组
+                    type = trsValue[i].split(SEPARATOR)[0];
+                    for (var j = i + 1; j < len; j++) {
+                        //获取每行分割后数组的第二个值,即文本值
+                        var value1 = trsValue[i].split(SEPARATOR)[1];
+                        //获取下一行分割后数组的第二个值,即文本值
+                        var value2 = trsValue[j].split(SEPARATOR)[1];
+                        //接下来是数字\字符串等的比较
+                        if (type === 'number') {
+                            value1 = value1 == "" ? 0 : value1;
+                            value2 = value2 == "" ? 0 : value2;
+                            if (parseFloat(value1) > parseFloat(value2)) {
+                                var temp = trsValue[j];
+                                trsValue[j] = trsValue[i];
+                                trsValue[i] = temp;
+                            }
+                        } else if (type === 'string') {
+                            if (value1 > value2) {
+                                var temp = trsValue[j];
+                                trsValue[j] = trsValue[i];
+                                trsValue[i] = temp;
+                            }
+                        }
+                    }
+                }
+            }
+            for (var i = 0; i < len; i++) {
+                var $row = dataMap[trsValue[i].split(SEPARATOR)[2]];
+                var $newRow = $table.find("tbody tr:eq(" + i + ")");
+                $newRow.html($row.html());
+                s.row_events($newRow);
+            }
+            var now = new Date().getTime() - time;
+            console.debug('排序耗时：' + (now / 1000));
+            if (s.hasIndex) {
+                updateIndex();
+            }
         }
 
         // Export data
