@@ -224,6 +224,9 @@
 </script>
 <script type="text/javascript">
 var data = ${accounts};
+if (!data || data.length == 0) {
+    data = [["", "", 0.00, 0.00, 0.00, "K1", "NONE", "", "IDLE", "", "", ""]];
+}
 var dateOption = {
     format: 'yyyy-mm-dd',
     minView: '2',
@@ -410,6 +413,12 @@ var $table = $('#accountTable').editTable({
         $('#remove-id').val(id);
         $('#btn-remove').click(function() {
             var id = $('#remove-id').val();
+            if (!id || id == 'null') {
+                $('#remove-modal').modal('hide');
+                $row.remove();
+                callback && callback();
+                return false;
+            }
             var url = '${ctx}/front/account/' + id + '/remove';
             $.post(url).done(function(resp) {
                 $('#remove-modal').modal('hide');
@@ -433,21 +442,6 @@ var $table = $('#accountTable').editTable({
                 }
             });
         });
-    },
-    row_events: function($row) {
-        $row.find('select').each(function(){
-            $(this).insertAfter($(this).parents('.bootstrap-select'));
-            $(this).closest('td').find('.bootstrap-select').remove();
-            var style = $(this).find('option:selected').attr('data-class');
-            style = style || 'btn-white';
-            $(this).css('display', 'block!important').show().selectpicker().selectpicker('setStyle', style);
-        });
-        $row.find('.deadline').datetimepicker(dateOption).on('changeDate', function(ev) {
-            var startDate = $(this).val();
-            $row.find('.withdraw_date').datetimepicker('setStartDate', startDate);
-            $row.find('.withdraw_date').val('');
-        });
-        $row.find('.withdraw_date').datetimepicker(dateOption);
     }
 });
 $(function() {

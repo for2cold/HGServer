@@ -30,9 +30,6 @@
                 },
                 update_callback: function($row, data) {
 
-                },
-                row_events: function($row) {
-
                 }
             }, options),
             $el = $(this),
@@ -45,6 +42,7 @@
             colnumber,
             rownumber,
             reset,
+            SEPARATOR = '.separator',
             is_validated = true;
 
         // Increment for IDs
@@ -220,7 +218,6 @@
         function sortTable(index, type, sort_type) {
             var trsValue = new Array();
             var dataMap = {};
-            var SEPARATOR = '.separator';
             $table.find('tbody tr').each(function (_index) {
                 var tds = $(this).find('td');
                 var value = $(tds[index]).find('input').val();
@@ -236,54 +233,48 @@
                 //获取行号为index列的某一行的单元格内容与该单元格所在行的行内容添加到数组trsValue中
                 var text = type + SEPARATOR + value + SEPARATOR + _index;
                 trsValue.push(text);
-                dataMap[_index] = $(this).clone(true);
-                $(this).html('');
+                dataMap[_index] = $(this);
             });
-            var time = new Date().getTime();
             var len = trsValue.length;
             if (sort_type == 'DESC') {
                 //如果已经排序了则直接倒序
                 trsValue.reverse();
             } else {
-                for (var i = 0; i < len; i++) {
-                    //split() 方法用于把一个字符串分割成字符串数组
-                    type = trsValue[i].split(SEPARATOR)[0];
-                    for (var j = i + 1; j < len; j++) {
-                        //获取每行分割后数组的第二个值,即文本值
-                        var value1 = trsValue[i].split(SEPARATOR)[1];
-                        //获取下一行分割后数组的第二个值,即文本值
-                        var value2 = trsValue[j].split(SEPARATOR)[1];
-                        //接下来是数字\字符串等的比较
-                        if (type === 'number') {
-                            value1 = value1 == "" ? 0 : value1;
-                            value2 = value2 == "" ? 0 : value2;
-                            if (parseFloat(value1) > parseFloat(value2)) {
-                                var temp = trsValue[j];
-                                trsValue[j] = trsValue[i];
-                                trsValue[i] = temp;
-                            }
-                        } else if (type === 'string') {
-                            if (value1 > value2) {
-                                var temp = trsValue[j];
-                                trsValue[j] = trsValue[i];
-                                trsValue[i] = temp;
-                            }
-                        }
-                    }
-                }
+                trsValue = quickSort(trsValue);
             }
+            var index = 0;
             for (var i = 0; i < len; i++) {
                 var $row = dataMap[trsValue[i].split(SEPARATOR)[2]];
-                var $newRow = $table.find("tbody tr:eq(" + i + ")");
-                $newRow.html($row.html());
-                s.row_events($newRow);
+                if (i == 0) {
+                    $row.insertBefore($table.find('tbody tr:first'));
+                } else {
+                    index = i - 1;
+                    $row.insertAfter($table.find('tbody tr').eq(index));
+                }
             }
-            var now = new Date().getTime() - time;
-            console.debug('排序耗时：' + (now / 1000));
             if (s.hasIndex) {
                 updateIndex();
             }
         }
+
+        // 快速排序
+        var quickSort = function(arr) {
+        　　if (arr.length <= 1) { return arr; }
+        　　var pivotIndex = Math.floor(arr.length / 2);
+        　　var pivot = arr.splice(pivotIndex, 1)[0];
+        　　var left = [];
+        　　var right = [];
+        　　for (var i = 0; i < arr.length; i++){
+        　　　　var value1 = arr[i].split(SEPARATOR)[1];
+               var value2 = pivot.split(SEPARATOR)[1];
+               if (value1 < value2) {
+        　　　　　　left.push(arr[i]);
+        　　　　} else {
+        　　　　　　right.push(arr[i]);
+        　　　　}
+        　　}
+        　　return quickSort(left).concat([pivot], quickSort(right));
+        };
 
         // Export data
         function exportData() {
