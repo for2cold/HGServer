@@ -10,7 +10,9 @@ import com.kazyle.hugohelper.server.function.core.account.entity.AccountSheet;
 import com.kazyle.hugohelper.server.function.core.account.entity.WithdrawRecord;
 import com.kazyle.hugohelper.server.function.core.account.mapper.AccountMapper;
 import com.kazyle.hugohelper.server.function.core.user.entity.User;
+import com.kazyle.hugohelper.server.function.front.account.dto.AccountReportsDto;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountSearchDto;
+import com.kazyle.hugohelper.server.function.front.account.result.ReportResult;
 import com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult;
 import org.springframework.stereotype.Repository;
 
@@ -81,5 +83,12 @@ public class AccountRepository {
         context.put("userId", user.getId());
         context.put("period", period);
         return accountMapper.queryStatistics(context);
+    }
+
+    public List<ReportResult> queryReports(Long userId, AccountReportsDto dto) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", userId);
+        context.put("period", dto.getPeriod());
+        return accountMapper.queryReports(context);
     }
 }

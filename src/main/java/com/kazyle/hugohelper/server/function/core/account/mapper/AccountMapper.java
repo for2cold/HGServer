@@ -5,6 +5,7 @@ import com.kazyle.hugohelper.server.function.core.account.entity.Account;
 import com.kazyle.hugohelper.server.function.core.account.entity.AccountSheet;
 import com.kazyle.hugohelper.server.function.core.account.entity.WithdrawRecord;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountSearchDto;
+import com.kazyle.hugohelper.server.function.front.account.result.ReportResult;
 import com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult;
 import org.apache.ibatis.annotations.Param;
 
@@ -74,4 +75,11 @@ public interface AccountMapper {
      * @return
      */
     WithdrawResult queryStatistics(Map<String, Object> context);
+
+    /**
+     * 收入报表
+     * @param context
+     * @return
+     */
+    List<ReportResult> queryReports(Map<String, Object> context);
 }

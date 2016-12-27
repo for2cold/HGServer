@@ -4,8 +4,10 @@ import com.kazyle.hugohelper.server.config.domain.data.Page;
 import com.kazyle.hugohelper.server.config.domain.data.PageRequest;
 import com.kazyle.hugohelper.server.function.core.account.entity.Account;
 import com.kazyle.hugohelper.server.function.core.user.entity.User;
+import com.kazyle.hugohelper.server.function.front.account.dto.AccountReportsDto;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountSearchDto;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountUpdateDto;
+import com.kazyle.hugohelper.server.function.front.account.result.ReportResult;
 import com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult;
 
 import java.util.Date;
@@ -44,4 +46,12 @@ public interface AccountService {
      * @return
      */
     WithdrawResult queryStatistics(User user, Date periodDate);
+
+    /**
+     * 收入报表
+     * @param id
+     * @param dto
+     * @return
+     */
+    List<ReportResult> queryReports(Long id, AccountReportsDto dto);
 }

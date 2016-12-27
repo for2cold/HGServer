@@ -178,4 +178,18 @@
                 date_format(t1.withdraw_date,'%Y-%m') = date_format(#{period},'%Y-%m')
             ) t
     </select>
+
+    <select id="queryReports" parameterType="map" resultType="com.kazyle.hugohelper.server.function.front.account.result.ReportResult">
+        select
+            ifnull(sum(t.withdraw_balance), 0) as amount,
+            t.withdraw_date as date
+        from
+            hg_withdraw_record t
+        where
+            t.user_id = #{userId}
+        and
+            date_format(t.withdraw_date,'%Y-%m') = date_format(#{period},'%Y-%m')
+        group by t.withdraw_date
+        order by t.withdraw_date asc
+    </select>
 </mapper>

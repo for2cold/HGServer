@@ -8,8 +8,10 @@ import com.kazyle.hugohelper.server.function.core.account.entity.enums.AccountSt
 import com.kazyle.hugohelper.server.function.core.account.repository.AccountRepository;
 import com.kazyle.hugohelper.server.function.core.account.service.AccountService;
 import com.kazyle.hugohelper.server.function.core.user.entity.User;
+import com.kazyle.hugohelper.server.function.front.account.dto.AccountReportsDto;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountSearchDto;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountUpdateDto;
+import com.kazyle.hugohelper.server.function.front.account.result.ReportResult;
 import com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
@@ -44,7 +46,6 @@ public class AccountServiceImpl implements AccountService {
                         pojo.getBalance(),
                         pojo.getWithdrawBalance(),
                         pojo.getPhone(),
-                        pojo.getTaskType(),
                         pojo.getAlipay(),
                         pojo.getStatus(),
                         pojo.getDeadlineText(),
@@ -69,7 +70,6 @@ public class AccountServiceImpl implements AccountService {
         account.setMobile(dto.getMobile());
         account.setBalance(dto.getBalance());
         account.setWithdrawBalance(dto.getWithdrawBalance());
-        account.setTaskType(dto.getTaskType());
         account.setPhone(dto.getPhone());
         account.setAlipay(dto.getAlipay());
         account.setStatus(dto.getStatus());
@@ -142,5 +142,10 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void remove(Long id) {
         accountRepository.updateLogicDeleted(id, Boolean.TRUE);
+    }
+
+    @Override
+    public List<ReportResult> queryReports(Long userId, AccountReportsDto dto) {
+        return accountRepository.queryReports(userId, dto);
     }
 }

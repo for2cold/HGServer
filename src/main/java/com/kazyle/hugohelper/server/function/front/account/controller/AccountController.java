@@ -6,8 +6,10 @@ import com.kazyle.hugohelper.server.config.domain.data.*;
 import com.kazyle.hugohelper.server.function.core.account.entity.Account;
 import com.kazyle.hugohelper.server.function.core.account.service.AccountService;
 import com.kazyle.hugohelper.server.function.core.user.entity.User;
+import com.kazyle.hugohelper.server.function.front.account.dto.AccountReportsDto;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountSearchDto;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountUpdateDto;
+import com.kazyle.hugohelper.server.function.front.account.result.ReportResult;
 import com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -74,6 +76,14 @@ public class AccountController extends BaseFrontController<Account> {
     public ResponseEntity remove(@PathVariable("id") Long id) {
         ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "账号删除成功！");
         accountService.remove(id);
+        return entity;
+    }
+
+    @RequestMapping("/reports")
+    @ResponseBody
+    public ResponseEntity reports(@CurrentUser User user, AccountReportsDto dto) {
+        ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "获取报表成功");
+        List<ReportResult> results = accountService.queryReports(user.getId(), dto);
         return entity;
     }
 }
