@@ -262,10 +262,26 @@ $(function() {
         var url = ctx + '/front/account/reports?period=' + period;
         $.get(url).done(function(resp) {
             if (resp.code == 1000) {
-                console.debug(resp.data);
+                $('#report-modal').modal();
+                var datas = resp.data;
+                $('#report-modal table tbody').html('');
+                if (datas && datas.length > 0) {
+                    for (var i = 0; i < datas.length; ++i) {
+                        var report = datas[i];
+                        var $tr = $('<tr><td class="index"></td><td class="date"></td><td class="amount"></td></tr>');
+                        $tr.find('.index').text((i + 1));
+                        $tr.find('.date').text(report.date);
+                        $tr.find('.amount').text(report.amount);
+                        if (report.amount >= 300) {
+                            $tr.find('.amount').addClass('text-primary')
+                        }
+                        $('#report-modal table tbody').append($tr);
+                    }
+                } else {
+                    $('#report-modal table tbody').html('<tr><td class="text-center" colspan="3">暂无收入</td></tr>');
+                }
             }
         });
-        $('#report-modal').modal();
     });
 });
 function searchForm() {

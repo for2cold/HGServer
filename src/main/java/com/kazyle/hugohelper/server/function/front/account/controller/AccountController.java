@@ -84,6 +84,7 @@ public class AccountController extends BaseFrontController<Account> {
     public ResponseEntity reports(@CurrentUser User user, AccountReportsDto dto) {
         ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "获取报表成功");
         List<ReportResult> results = accountService.queryReports(user.getId(), dto);
+        entity.setObj(results);
         return entity;
     }
 }

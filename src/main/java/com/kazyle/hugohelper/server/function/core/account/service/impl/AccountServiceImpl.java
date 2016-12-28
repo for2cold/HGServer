@@ -108,7 +108,7 @@ public class AccountServiceImpl implements AccountService {
                 if (account.getBalance().compareTo(account.getWithdrawBalance()) < 0) {
                     account.setBalance(new BigDecimal(0));
                 } else {
-                    account.setBalance(account.getBalance().divide(account.getWithdrawBalance()));
+                    account.setBalance(account.getBalance().subtract(account.getWithdrawBalance()));
                 }
                 account.setAmount(_account.getAmount().add(account.getWithdrawBalance()));
                 account.setWithdrawBalance(new BigDecimal(0));

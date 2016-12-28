@@ -118,7 +118,9 @@
                                     <span><fmt:formatNumber value="${withdrawResult.averageAmount}" pattern="#,#00.0#"/>/天</span>
                                     </span>
                                 </c:if>
-                                <a class="btn btn-success" id="reportBtn" href="javascript:void(0);">收入报表</a>
+                                <c:if test="${not empty searchView.periodDate}">
+                                    <a class="btn btn-success" id="reportBtn" href="javascript:void(0);">收入报表</a>
+                                </c:if>
                             </h3>
                             <div id="accountTable"></div>
                         </div>
@@ -215,7 +217,7 @@
                     <h4 class="modal-title">收入报表</h4>
                 </div>
                 <div class="modal-body">
-                    <div class="table-responsive">
+                    <div class="table-responsive" style="max-height: 500px">
                         <table class="table table-bordered table-hover">
                             <thead>
                                 <tr>
@@ -250,7 +252,8 @@
     }
 </script>
 <script type="text/javascript">
-var data = ${accounts};var ctx = '${ctx}';
+var ctx = '${ctx}';
+var data = ${accounts};
 </script>
 <script src="${ctx}/js/modules/account.js"></script>
 </html>

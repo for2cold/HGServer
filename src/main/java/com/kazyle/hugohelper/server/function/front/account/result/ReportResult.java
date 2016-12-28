@@ -17,7 +17,7 @@ import java.util.Date;
  */
 public class ReportResult {
 
-    @JSONField(format = "yyyy-MM")
+    @JSONField(format = "yyyy-MM-dd")
     private Date date;
 
     private BigDecimal amount;
