@@ -3,6 +3,7 @@ package com.kazyle.hugohelper.server.function.core.account.service.impl;
 import com.google.common.collect.Lists;
 import com.kazyle.hugohelper.server.function.core.account.entity.Account;
 import com.kazyle.hugohelper.server.function.core.account.entity.AccountSheet;
+import com.kazyle.hugohelper.server.function.core.account.entity.Email;
 import com.kazyle.hugohelper.server.function.core.account.entity.WithdrawRecord;
 import com.kazyle.hugohelper.server.function.core.account.entity.enums.AccountStatus;
 import com.kazyle.hugohelper.server.function.core.account.repository.AccountRepository;
@@ -147,5 +148,10 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<ReportResult> queryReports(Long userId, AccountReportsDto dto) {
         return accountRepository.queryReports(userId, dto);
+    }
+
+    @Override
+    public List<Email> queryEmailList(Long userId) {
+        return accountRepository.queryEmailList(userId);
     }
 }

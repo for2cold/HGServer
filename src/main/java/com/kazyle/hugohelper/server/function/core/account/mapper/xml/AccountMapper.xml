@@ -25,6 +25,11 @@
     <resultMap id="WithdrawResultMap" type="com.kazyle.hugohelper.server.function.front.account.result.WithdrawResult">
         <result column="average_amount" property="averageAmount" jdbcType="DECIMAL"/>
     </resultMap>
+    <resultMap id="EmailResultMap" type="com.kazyle.hugohelper.server.function.core.account.entity.Email">
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="INTEGER" typeHandler="org.apache.ibatis.type.EnumOrdinalTypeHandler"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+    </resultMap>
 
     <sql id="select_fields">
         t.id,
@@ -191,5 +196,24 @@
             date_format(t.withdraw_date,'%Y-%m') = date_format(#{period},'%Y-%m')
         group by t.withdraw_date
         order by t.withdraw_date asc
+    </select>
+
+    <select id="queryEmailList" parameterType="map" resultMap="EmailResultMap">
+        select
+            t.id,
+            t.account,
+            t.password,
+            t.type,
+            t.status,
+            t.user_id
+            t.alipay,
+            t.create_date
+        from
+            hg_email t
+        where
+            t.user_id = #{userId}
+        and
+            t.status = #{status}
+        order by t.create_date asc
     </select>
 </mapper>
