@@ -7,7 +7,9 @@ import com.kazyle.hugohelper.server.config.domain.data.PageImpl;
 import com.kazyle.hugohelper.server.config.domain.data.PageRequest;
 import com.kazyle.hugohelper.server.function.core.account.entity.Account;
 import com.kazyle.hugohelper.server.function.core.account.entity.AccountSheet;
+import com.kazyle.hugohelper.server.function.core.account.entity.Email;
 import com.kazyle.hugohelper.server.function.core.account.entity.WithdrawRecord;
+import com.kazyle.hugohelper.server.function.core.account.entity.enums.EmailStatus;
 import com.kazyle.hugohelper.server.function.core.account.mapper.AccountMapper;
 import com.kazyle.hugohelper.server.function.core.user.entity.User;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountReportsDto;
@@ -90,5 +92,12 @@ public class AccountRepository {
         context.put("userId", userId);
         context.put("period", dto.getPeriod());
         return accountMapper.queryReports(context);
+    }
+
+    public List<Email> queryEmailList(Long userId) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", userId);
+        context.put("status", EmailStatus.UNUSED.ordinal());
+        return accountMapper.queryEmailList(context);
     }
 }

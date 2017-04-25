@@ -3,6 +3,7 @@ package com.kazyle.hugohelper.server.function.core.account.service;
 import com.kazyle.hugohelper.server.config.domain.data.Page;
 import com.kazyle.hugohelper.server.config.domain.data.PageRequest;
 import com.kazyle.hugohelper.server.function.core.account.entity.Account;
+import com.kazyle.hugohelper.server.function.core.account.entity.Email;
 import com.kazyle.hugohelper.server.function.core.user.entity.User;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountReportsDto;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountSearchDto;
@@ -54,4 +55,11 @@ public interface AccountService {
      * @return
      */
     List<ReportResult> queryReports(Long id, AccountReportsDto dto);
+
+    /**
+     * 获取邮箱列表
+     * @param id
+     * @return
+     */
+    List<Email> queryEmailList(Long id);
 }

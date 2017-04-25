@@ -3,6 +3,7 @@ package com.kazyle.hugohelper.server.function.core.account.mapper;
 import com.kazyle.hugohelper.server.config.annotation.MyBatisMapper;
 import com.kazyle.hugohelper.server.function.core.account.entity.Account;
 import com.kazyle.hugohelper.server.function.core.account.entity.AccountSheet;
+import com.kazyle.hugohelper.server.function.core.account.entity.Email;
 import com.kazyle.hugohelper.server.function.core.account.entity.WithdrawRecord;
 import com.kazyle.hugohelper.server.function.front.account.dto.AccountSearchDto;
 import com.kazyle.hugohelper.server.function.front.account.result.ReportResult;
@@ -82,4 +83,11 @@ public interface AccountMapper {
      * @return
      */
     List<ReportResult> queryReports(Map<String, Object> context);
+
+    /**
+     * 获取邮箱列表
+     * @param context
+     * @return
+     */
+    List<Email> queryEmailList(Map<String, Object> context);
 }
