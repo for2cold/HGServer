@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="HGServer:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="HGServer.war">
+      <element id="artifact" artifact-name="HGServer:war exploded" />
+    </root>
+  </artifact>
+</component>

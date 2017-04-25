@@ -63,8 +63,13 @@ public class ApkApiController extends BaseController<User> {
     }
 
     @RequestMapping("list")
-    public ResponseEntity list(long userId) {
+    public ResponseEntity list(long userId, String signature) {
         ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "获取APK列表");
+        if (userId != 2 && !sysConfig.getSignature().equals(signature)) {
+            entity.setCode(ResponseCode.ERROR.getValue());
+            entity.setMsg("请先上传APK");
+            return entity;
+        }
         List<Apk> apks = apkService.queryList(userId);
         for (Apk apk : apks) {
             apk.setPath(sysConfig.getAccessUrl() + apk.getPath());

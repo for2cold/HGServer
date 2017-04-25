@@ -20,6 +20,8 @@ public class SysConfig {
 
     private String apkFolder;
 
+    private String signature;
+
     public String getAccessUrl() {
         return accessUrl;
     }
@@ -66,5 +68,13 @@ public class SysConfig {
 
     public void setApkFolder(String apkFolder) {
         this.apkFolder = apkFolder;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
     }
 }

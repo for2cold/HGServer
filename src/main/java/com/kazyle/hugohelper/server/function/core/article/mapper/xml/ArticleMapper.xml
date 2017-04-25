@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kazyle.hugohelper.server.function.core.article.mapper.ArticleMapper">
+
+    <resultMap id="ArticleResultMap" type="com.kazyle.hugohelper.server.function.core.article.entity.Article">
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="type" property="type" jdbcType="INTEGER"/>
+        <result column="visit_count" property="visitCount" jdbcType="INTEGER"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+
+    </resultMap>
+
+    <sql id="select_fields">
+        t.id,
+        t.user_id,
+        t.type,
+        t.url,
+        t.platform,
+        t.visit_count,
+        t.create_date
+    </sql>
+
+    <!--获取文章列表-->
+    <select id="findList" parameterType="map" resultMap="ArticleResultMap">
+        select
+          <include refid="select_fields" />
+        from
+          hg_article t
+        where
+          t.user_id = #{userId}
+        and
+          t.type = #{type}
+        order by t.create_date desc, t.platform asc
+    </select>
+
+    <!--添加文章-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.article.entity.Article">
+        insert into hg_article(
+          `url`, `type`, `platform`, `user_id`, `create_date`
+        ) values (
+          #{url}, #{type}, #{platform}, #{userId}, #{createDate}
+        )
+    </insert>
+
+    <delete id="delete" parameterType="java.util.List">
+        delete from hg_article where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

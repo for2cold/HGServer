@@ -9,6 +9,8 @@ public class RequestScriptView {
 
     private Long userId;
 
+    private String signature;
+
     private List<Long> scriptIds;
 
     public Long getUserId() {
@@ -25,5 +27,13 @@ public class RequestScriptView {
 
     public void setScriptIds(List<Long> scriptIds) {
         this.scriptIds = scriptIds;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
     }
 }
