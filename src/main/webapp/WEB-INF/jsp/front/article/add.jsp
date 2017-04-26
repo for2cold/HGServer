@@ -1,6 +1,7 @@
 <%@ page language="java" pageEncoding="UTF-8" trimDirectiveWhitespaces="true"%>
 <%@include file="/WEB-INF/common/taglibs.jspf" %>
 <hg:PageHeader />
+<link rel="stylesheet" href="${ctx}/css/select2.min.css">
 </head>
 <body>
 <!-- begin #page-loader -->
@@ -9,7 +10,12 @@
 <!-- begin #page-container -->
 <div id="page-container" class="fade page-sidebar-fixed page-header-fixed">
     <hg:Header />
-    <hg:Sidebar id="script"/>
+    <c:if test="${empty type}">
+        <hg:Sidebar id="article"/>
+    </c:if>
+    <c:if test="${not empty type}">
+        <hg:Sidebar id="article-1"/>
+    </c:if>
     <!-- begin #content -->
     <div id="content" class="content">
         <div id="data-loader" class="fade in hide"><span class="spinner" style="top: 40%;z-index:9999"></span></div>
@@ -31,13 +37,19 @@
                             <div class="form-group">
                                 <label class="control-label col-md-4 col-sm-4 required">平台名称</label>
                                 <div class="col-md-6 col-sm-6">
-                                    <input class="form-control" type="text" id="platform" name="platform" placeholder="请输入平台名称"  data-parsley-required="true" />
+                                    <select id="platform" name="platform" data-type="alphanum" data-parsley-required="true" class="form-control" multiple="multiple">
+                                        <c:if test="${fn:length(platforms) > 0}">
+                                            <c:forEach items="${platforms}" var="platform">
+                                                <option value="${platform}">${platform}</option>
+                                            </c:forEach>
+                                        </c:if>
+                                    </select>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="control-label col-md-4 col-sm-4 required" for="url">文章链接</label>
                                 <div class="col-md-6 col-sm-6">
-                                    <textarea class="form-control" id="url" name="url" rows="4" data-parsley-range="[5,500]"></textarea>
+                                    <textarea class="form-control" id="url" name="url" rows="4" data-parsley-required="true" data-parsley-range="[5,500]"></textarea>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -68,9 +80,15 @@
 </body>
 <hg:PageFooter />
 <script src="${ctx}/js/parsley.js"></script>
+<script src="${ctx}/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
         App.init();
+        $("#platform").select2({
+            tags: true
+        }).on('select2:selecting', function() {
+            $('#platform > option').attr('selected', false);
+        });
     });
 </script>
 </html>

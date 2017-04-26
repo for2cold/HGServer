@@ -2,6 +2,7 @@ package com.kazyle.hugohelper.server.function.core.article.mapper;
 
 import com.kazyle.hugohelper.server.config.annotation.MyBatisMapper;
 import com.kazyle.hugohelper.server.function.core.article.entity.Article;
+import com.kazyle.hugohelper.server.function.core.article.entity.ArticlePlatform;
 
 import java.util.List;
 import java.util.Map;
@@ -37,4 +38,30 @@ public interface ArticleMapper {
      * @param idList
      */
     void delete(List<Long> idList);
+
+    /**
+     * @param context
+     * @return
+     */
+    List<Article> queryList(Map<String, Object> context);
+
+    /**
+     * 获取平台列表
+     * @param userId
+     * @return
+     */
+    List<String> queryPlatforms(Long userId);
+
+    /**
+     * 获取平台信息
+     * @param context
+     * @return
+     */
+    ArticlePlatform queryPlatform(Map<String, Object> context);
+
+    /**
+     * 保存平台信息
+     * @param platform
+     */
+    void savePlatform(ArticlePlatform platform);
 }

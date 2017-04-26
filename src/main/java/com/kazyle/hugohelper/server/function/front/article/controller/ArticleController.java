@@ -44,8 +44,10 @@ public class ArticleController extends BaseFrontController<Article> {
     }
 
     @RequestMapping(value = "/add", method = RequestMethod.GET)
-    public String add(Integer type, Model model) {
+    public String add(@CurrentUser User user, Integer type, Model model) {
         model.addAttribute("type", type);
+        List<String> platforms = articleService.queryPlatforms(user.getId());
+        model.addAttribute("platforms", platforms);
         return viewName("add");
     }
 

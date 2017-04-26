@@ -13,6 +13,7 @@
 			<li class="${id eq 'script' ? 'active' : ''}"><a href="${ctx}/front/script/index"><i class="fa fa-terminal"></i> <span>脚本维护</span></a></li>
             <c:if test="${currentUser.id == 3}">
             <li class="${id eq 'article' ? 'active' : ''}"><a href="${ctx}/front/article/index"><i class="fa fa-rocket"></i> <span>链接管理</span></a></li>
+            <li class="${id eq 'article-1' ? 'active' : ''}"><a href="${ctx}/front/article/index?type=1"><i class="fa fa-rocket"></i> <span>链接管理2</span></a></li>
             <li class="${id eq 'vpn' ? 'active' : ''}"><a href="${ctx}/front/vpn/index"><i class="fa fa-pied-piper"></i> <span>VPN管理</span></a></li>
             <li class="${id eq 'account' ? 'active' : ''}"><a href="${ctx}/front/account/index?periodDate=${nowMonth}"><i class="fa fa-user"></i> <span>账号管理</span></a></li>
             <li class="${id eq 'withdraw' ? 'active' : ''}"><a href="${ctx}/front/withdraw/index"><i class="fa fa-cny"></i> <span>提现记录</span></a></li>

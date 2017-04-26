@@ -2,6 +2,7 @@ package com.kazyle.hugohelper.server.function.core.article.repository;
 
 import com.google.common.collect.Maps;
 import com.kazyle.hugohelper.server.function.core.article.entity.Article;
+import com.kazyle.hugohelper.server.function.core.article.entity.ArticlePlatform;
 import com.kazyle.hugohelper.server.function.core.article.mapper.ArticleMapper;
 import org.springframework.stereotype.Repository;
 
@@ -40,5 +41,28 @@ public class ArticleRepository {
     public void remove(Long[] ids) {
         List<Long> idList = Arrays.asList(ids);
         articleMapper.delete(idList);
+    }
+
+    public List<Article> queryList(Long userId, Integer type, String platform) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", userId);
+        context.put("type", type);
+        context.put("platform", platform);
+        return articleMapper.queryList(context);
+    }
+
+    public List<String> queryPlatforms(Long userId) {
+        return articleMapper.queryPlatforms(userId);
+    }
+
+    public ArticlePlatform queryPlatform(Long userId, String platform) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", userId);
+        context.put("platform", platform);
+        return articleMapper.queryPlatform(context);
+    }
+
+    public void savePlatform(ArticlePlatform platform) {
+        articleMapper.savePlatform(platform);
     }
 }

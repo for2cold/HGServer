@@ -10,7 +10,12 @@
 <!-- begin #page-container -->
 <div id="page-container" class="fade page-sidebar-fixed page-header-fixed">
     <hg:Header />
-    <hg:Sidebar id="article"/>
+    <c:if test="${empty type}">
+        <hg:Sidebar id="article"/>
+    </c:if>
+    <c:if test="${not empty type}">
+        <hg:Sidebar id="article-1"/>
+    </c:if>
     <!-- begin #content -->
     <div id="content" class="content">
         <div id="data-loader" class="fade in hide"><span class="spinner" style="top: 40%;z-index:9999"></span></div>
@@ -46,7 +51,6 @@
                                 <th>链接</th>
                                 <th>访问次数</th>
                                 <th>创建时间</th>
-                                <th>操作</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -67,15 +71,12 @@
                                         <td>
                                             <fmt:formatDate value="${item.createDate}" pattern="yyyy-MM-dd HH:mm"/>
                                         </td>
-                                        <td>
-                                            <button type="button" class="btn btn-danger btn-sm btn-remove" data-id="${item.id}">删除</button>
-                                        </td>
                                     </tr>
                                 </c:forEach>
                             </c:if>
                             <c:if test="${fn:length(articles) == 0}">
                                 <tr>
-                                    <td class="text-center" colspan="6">
+                                    <td class="text-center" colspan="5">
                                         暂无数据
                                     </td>
                                 </tr>
@@ -93,26 +94,6 @@
     <!-- begin scroll to top btn -->
     <a href="javascript:;" class="btn btn-icon btn-circle btn-success btn-scroll-to-top fade" data-click="scroll-top"><i class="fa fa-angle-up"></i></a>
     <!-- end scroll to top btn -->
-</div>
-<div class="modal fade" id="remove-modal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h4 class="modal-title">删除警告</h4>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-danger m-b-0">
-                    <h4><i class="fa fa-info-circle"></i> 您确定要删除该APK吗？删除后不可恢复！</h4>
-                    <input type="hidden" id="remove-id" value="">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">取消</a>
-                <a href="javascript:;" id="btn-remove" class="btn btn-sm btn-danger">确定</a>
-            </div>
-        </div>
-    </div>
 </div>
 </body>
 <hg:PageFooter />
@@ -141,42 +122,6 @@
                         time: 2000,
                         after_close: function() {
                             window.location.reload();
-                        }
-                    });
-                } else {
-                    $.gritter.add({
-                        title: '删除失败',
-                        text: resp.msg,
-                        time: 2000
-                    });
-                }
-            }).fail(function(){
-                $('#remove-modal').modal('hide');
-                $.gritter.add({
-                    title: '删除失败',
-                    text: '系统繁忙，请稍后再试吧~~',
-                    time: 2000
-                });
-            });
-        });
-        $('.btn-remove').click(function() {
-            var id = $(this).attr('data-id');
-            $('#remove-modal').modal();
-            $('#remove-id').val(id);
-        });
-        $('.btn-remove').click(function() {
-            var id = $('#remove-id').val();
-            var url = '${ctx}/front/article/remove?ids=' + id;
-            $.post(url).done(function(resp) {
-                $('#remove-modal').modal('hide');
-                if (resp.code == 1000) {
-                    $.gritter.add({
-                        title: '成功提示~',
-                        text: resp.msg,
-                        class_name: 'gritter-light',
-                        time: 2000,
-                        after_close: function() {
-                            window.location.href = '${ctx}/front/apk/index';
                         }
                     });
                 } else {

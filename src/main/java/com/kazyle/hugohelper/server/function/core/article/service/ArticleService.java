@@ -36,4 +36,20 @@ public interface ArticleService {
      * @param ids
      */
     void remove(Long[] ids);
+
+    /**
+     * 随机获取文章
+     * @param userId
+     * @param platform
+     * @param type
+     * @return
+     */
+    Article get(Long userId, String platform, Integer type);
+
+    /**
+     * 获取平台列表
+     * @param userId
+     * @return
+     */
+    List<String> queryPlatforms(Long userId);
 }

@@ -7,7 +7,10 @@
         <result column="type" property="type" jdbcType="INTEGER"/>
         <result column="visit_count" property="visitCount" jdbcType="INTEGER"/>
         <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
-
+    </resultMap>
+    <resultMap id="ArticlePlatformResultMap" type="com.kazyle.hugohelper.server.function.core.article.entity.ArticlePlatform">
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="select_fields">
@@ -33,6 +36,21 @@
         order by t.create_date desc, t.platform asc
     </select>
 
+    <!--获取文章列表-->
+    <select id="queryList" parameterType="map" resultMap="ArticleResultMap">
+        select
+          <include refid="select_fields" />
+        from
+          hg_article t
+        where
+          t.user_id = #{userId}
+        and
+          t.type = #{type}
+        and
+          t.platform = #{platform}
+        order by t.create_date desc, t.platform asc
+    </select>
+
     <!--添加文章-->
     <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.article.entity.Article">
         insert into hg_article(
@@ -48,4 +66,34 @@
             #{id}
         </foreach>
     </delete>
+
+    <select id="queryPlatforms" parameterType="long" resultType="string">
+        select
+          t.name
+        from
+          hg_article_platform t
+        where
+          t.user_id = #{userId}
+        order by t.create_date desc
+    </select>
+
+    <select id="queryPlatform" parameterType="map" resultMap="ArticlePlatformResultMap">
+        select
+          t.name
+        from
+          hg_article_platform t
+        where
+          t.user_id = #{userId}
+        and
+          t.name = #{platform}
+    </select>
+
+    <insert id="savePlatform" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.article.entity.ArticlePlatform">
+        insert into hg_article_platform(
+          `name`, `user_id`, `create_date`
+        ) values (
+          #{name}, #{userId}, #{createDate}
+        )
+    </insert>
+
 </mapper>
