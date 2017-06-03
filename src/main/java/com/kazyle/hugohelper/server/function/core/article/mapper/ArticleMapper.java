@@ -64,4 +64,22 @@ public interface ArticleMapper {
      * @param platform
      */
     void savePlatform(ArticlePlatform platform);
+
+    /**
+     * 更新状态
+     * @param ids
+     */
+    void update(List<Long> ids);
+
+    /**
+     * 更新状态
+     * @param id
+     */
+    void updateActive(Long id);
+
+    /**
+     * 更新阅读状态
+     * @param id
+     */
+    void updateTimes(Long id);
 }

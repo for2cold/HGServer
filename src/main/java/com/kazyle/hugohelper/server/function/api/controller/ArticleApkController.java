@@ -28,10 +28,10 @@ public class ArticleApkController extends BaseController<Article> {
     private ArticleService articleService;
 
     @RequestMapping("/index")
-    public ResponseEntity index(Long userId, String platform, Integer type) {
+    public ResponseEntity index(Long userId, String platform, String wechat, Integer type) {
         ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "获取文章成功");
 
-        Article pojo = articleService.get(userId, platform, type);
+        Article pojo = articleService.get(userId, platform, wechat, type);
         entity.setObj(pojo);
         if (pojo == null) {
             entity.setCode(ResponseCode.ERROR.getValue());

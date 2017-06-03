@@ -20,9 +20,10 @@ public interface ArticleService {
      * 获取文章列表
      * @param id
      * @param type
+     * @param platform
      * @return
      */
-    List<Article> queryList(Long id, Integer type);
+    List<Article> queryList(Long id, Integer type, String platform);
 
     /**
      * 添加文章
@@ -41,10 +42,10 @@ public interface ArticleService {
      * 随机获取文章
      * @param userId
      * @param platform
-     * @param type
-     * @return
+     * @param wechat
+     *@param type  @return
      */
-    Article get(Long userId, String platform, Integer type);
+    Article get(Long userId, String platform, String wechat, Integer type);
 
     /**
      * 获取平台列表
@@ -52,4 +53,10 @@ public interface ArticleService {
      * @return
      */
     List<String> queryPlatforms(Long userId);
+
+    /**
+     * 更新状态
+     * @param ids
+     */
+    void update(Long[] ids);
 }

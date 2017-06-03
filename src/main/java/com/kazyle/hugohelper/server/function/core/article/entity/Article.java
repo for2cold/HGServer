@@ -25,11 +25,19 @@ public class Article implements Serializable {
 
     private int visitCount;
 
+    private int times;
+
     private Long userId;
 
     private Integer type;
 
+    private Integer active;
+
+    private String wechat;
+
     private Date createDate;
+
+    private String params;
 
     public Long getId() {
         return id;
@@ -93,5 +101,37 @@ public class Article implements Serializable {
 
     public void setShortUrl(String shortUrl) {
         this.shortUrl = shortUrl;
+    }
+
+    public String getWechat() {
+        return wechat;
+    }
+
+    public void setWechat(String wechat) {
+        this.wechat = wechat;
+    }
+
+    public Integer getActive() {
+        return active;
+    }
+
+    public void setActive(Integer active) {
+        this.active = active;
+    }
+
+    public int getTimes() {
+        return times;
+    }
+
+    public void setTimes(int times) {
+        this.times = times;
+    }
+
+    public String getParams() {
+        return params;
+    }
+
+    public void setParams(String params) {
+        this.params = params;
     }
 }

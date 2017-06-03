@@ -12,23 +12,18 @@
 <div id="page-container" class="fade page-sidebar-fixed page-header-fixed">
     <hg:Header />
     <c:if test="${empty type}">
-        <hg:Sidebar id="article"/>
+        <hg:Sidebar id="balance"/>
     </c:if>
     <c:if test="${not empty type}">
-        <hg:Sidebar id="article-1"/>
+        <hg:Sidebar id="balance-1"/>
     </c:if>
     <!-- begin #content -->
     <div id="content" class="content">
         <div id="data-loader" class="fade in hide"><span class="spinner" style="top: 40%;z-index:9999"></span></div>
         <div class="email-btn-row hidden-xs">
-            <c:if test="${empty type}">
-                <a href="${ctx}/front/article/add" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 添加链接</a>
-            </c:if>
-            <c:if test="${not empty type}">
-                <a href="${ctx}/front/article/add?type=${type}" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 添加链接</a>
-            </c:if>
             <a href="javascript:;" id="btn-remove" class="btn btn-sm btn-danger"><i class="fa m-r-5 fa-trash"></i>删除</a>
-            <a href="javascript:;" id="btn-update" class="btn btn-sm btn-success"><i class="fa m-r-5 fa-exchange"></i>更新状态</a>
+            <a href="javascript:;" id="btn-query" class="btn btn-sm btn-success"><i class="fa fa-refresh m-r-5"></i> 刷新</a>
+            <a href="javascript:;" id="btn-exchange" class="btn btn-sm btn-success"><i class="fa fa-exchange m-r-5"></i> 存档</a>
         </div>
         <!-- begin row -->
         <div class="row">
@@ -39,7 +34,7 @@
                         <div class="panel-heading-btn">
                             <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                         </div>
-                        <h4 class="panel-title">链接列表</h4>
+                        <h4 class="panel-title">余额查询</h4>
                     </div>
                     <div class="panel-body">
                         <form class="form-inline" id="searchForm" action="" method="POST">
@@ -62,53 +57,15 @@
                                     <input type="checkbox" id="ids">
                                 </th>
                                 <th>序号</th>
-                                <th>平台</th>
-                                <th>链接</th>
+                                <th>账号</th>
+                                <th>余额</th>
+                                <th>今日收入</th>
+                                <th>登记日期</th>
                                 <th>状态</th>
-                                <th>微信号</th>
-                                <th>最大访问次数</th>
-                                <th>已访问次数</th>
-                                <th>创建时间</th>
                             </tr>
                             </thead>
-                            <tbody>
-                            <c:if test="${fn:length(articles) > 0}">
-                                <c:forEach items="${articles}" var="item" varStatus="status">
-                                    <tr>
-                                        <td>
-                                            <input type="checkbox" name="ids" value="${item.id}">
-                                        </td>
-                                        <td>${status.index + 1}</td>
-                                        <td>${item.platform}</td>
-                                        <td>
-                                            <span title="${item.url}">
-                                                ${item.shortUrl}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <c:if test="${item.active == 1}">
-                                                <span class="label label-success">运行</span>
-                                            </c:if>
-                                            <c:if test="${item.active != 1}">
-                                                <span class="label label-danger">暂停</span>
-                                            </c:if>
-                                        </td>
-                                        <td>${item.wechat}</td>
-                                        <th>${item.times}</th>
-                                        <th>${item.visitCount}</th>
-                                        <td>
-                                            <fmt:formatDate value="${item.createDate}" pattern="yyyy-MM-dd HH:mm"/>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:if>
-                            <c:if test="${fn:length(articles) == 0}">
-                                <tr>
-                                    <td class="text-center" colspan="9">
-                                        暂无数据
-                                    </td>
-                                </tr>
-                            </c:if>
+                            <tbody id="balanceTable">
+
                             </tbody>
                         </table>
                     </div>
@@ -125,18 +82,39 @@
 </div>
 </body>
 <hg:PageFooter />
+<script type="text/html" id="notDataTpl">
+<tr><td class="text-center" colspan="8">暂无数据</td></tr>
+</script>
+<script type="text/html" id="loadDataTpl">
+    <tr><td class="text-center" colspan="8">查询中，请稍后</td></tr>
+</script>
+<script type="text/html" id="rowTpl">
+    <tr>
+        <td>
+            <input type="checkbox" class="ids" name="ids" value="">
+        </td>
+        <td class="index"></td>
+        <td class="username"></td>
+        <td class="amount"></td>
+        <td class="today"></td>
+        <td class="date"></td>
+        <td class="status"></td>
+    </tr>
+</script>
 <script src="${ctx}/js/jquery.gritter.js"></script>
 <script src="${ctx}/js/bootstrap-select.min.js"></script>
 <script>
+    var loadData = $('#loadDataTpl').html();
+    var notData = $('#notDataTpl').html();
     $(document).ready(function() {
         App.init();
+        $('#platform').find('option[value="瞎转"]').attr('selected', true);
+        query();
+        $('#btn-query').click(function() {
+            query();
+        });
         $('#platform').change(function() {
-            var url = '${ctx}/front/article/index';
-            if ('${type}' == '1') {
-                url += '?type=1'
-            }
-            $('#searchForm').attr('action', url);
-            $('#searchForm').submit();
+            query();
         });
         $('#ids').click(function() {
             var checked = $(this).prop('checked');
@@ -147,21 +125,20 @@
             $(this).prop('checked', !checked);
             return false;
         });
-        $('table tbody > tr').click(function() {
+        $('body').on('click', 'table tbody > tr', function() {
             var $target = $(this).find('input[type="checkbox"]');
             var checked = $target.attr('checked');
             $target.prop('checked', !checked);
         });
-
+        // 删除
         $('#btn-remove').click(function() {
             var ids = $('input[name="ids"]:checked').serialize();
             if (!ids || ids.length == 0) {
                 alert('请先勾选要删除的数据');
                 return false;
             }
-            var url = '${ctx}/front/article/remove?' + ids;
+            var url = '${ctx}/front/balance/remove?' + ids;
             $.post(url).done(function(resp) {
-                $('#remove-modal').modal('hide');
                 if (resp.code == 1000) {
                     $.gritter.add({
                         title: '成功提示~',
@@ -169,7 +146,7 @@
                         class_name: 'gritter-light',
                         time: 2000,
                         after_close: function() {
-                            window.location.reload();
+                            query();
                         }
                     });
                 } else {
@@ -188,15 +165,15 @@
                 });
             });
         });
-        $('#btn-update').click(function() {
+        // 存档
+        $('#btn-exchange').click(function() {
             var ids = $('input[name="ids"]:checked').serialize();
             if (!ids || ids.length == 0) {
-                alert('请先勾选要删除的数据');
+                alert('请先勾选要存档的数据');
                 return false;
             }
-            var url = '${ctx}/front/article/update?' + ids;
+            var url = '${ctx}/front/balance/update/date?' + ids;
             $.post(url).done(function(resp) {
-                $('#remove-modal').modal('hide');
                 if (resp.code == 1000) {
                     $.gritter.add({
                         title: '成功提示~',
@@ -204,12 +181,12 @@
                         class_name: 'gritter-light',
                         time: 2000,
                         after_close: function() {
-                            window.location.reload();
+                            query();
                         }
                     });
                 } else {
                     $.gritter.add({
-                        title: '更新失败',
+                        title: '存档更新失败',
                         text: resp.msg,
                         time: 2000
                     });
@@ -217,12 +194,68 @@
             }).fail(function(){
                 $('#remove-modal').modal('hide');
                 $.gritter.add({
-                    title: '更新失败',
+                    title: '存档更新失败',
                     text: '系统繁忙，请稍后再试吧~~',
                     time: 2000
                 });
             });
         });
     });
+
+    function query() {
+        $('#balanceTable').html(loadData);
+
+        // 获取所有账号余额
+        var platform = $('#platform').val() || '瞎转';
+        var type = '${type}';
+
+        $.get('${ctx}/front/balance/list', {
+            'platform': platform,
+            'type': type
+        }).done(function(resp) {
+            if (resp.code == 1000) {
+                $('#balanceTable').html('');
+                var balances = resp.data;
+                if (balances.length == 0) {
+                    $('#balanceTable').html(notData);
+                }
+                for (var i = 0; i < balances.length; i++) {
+                    var balance = balances[i];
+                    var row = $('#rowTpl').html();
+                    var $row = $(row);
+                    $row.find('.ids').val(balance.id);
+                    $row.find('.index').text(i + 1);
+                    $row.find('.username').text(balance.username);
+                    var amount = balance.amount;
+                    try {
+                        amount = parseFloat(amount);
+                        if (isNaN(amount)) {
+                            amount = balance.amount;
+                        } else {
+                            if (amount >= 20) {
+                                amount = '<span class="text-success">' + amount + '</span>';
+                            } else if (amount < 20 && amount >= 10) {
+                                amount = '<span class="text-primary">' + amount + '</span>';
+                            } else if (amount < 10 && amount >= 5) {
+                                amount = '<span class="text-info">' + amount + '</span>';
+                            }
+                        }
+                    }catch(e) {}
+                    $row.find('.amount').html(amount);
+                    $row.find('.today').html(balance.today);
+                    $row.find('.date').html(balance.date);
+                    if (balance.block) {
+                        $row.find('.status').html('<span class="label label-danger">' + balance.block + '</span>');
+                    } else {
+                        $row.find('.status').html('<span class="label label-success">正常</span>');
+                    }
+                    $('#balanceTable').append($row);
+                }
+            } else {
+                alert(resp.msg);
+            }
+        });
+    }
+
 </script>
 </html>

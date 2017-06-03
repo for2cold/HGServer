@@ -18,7 +18,10 @@
         t.user_id,
         t.type,
         t.url,
+        t.wechat,
+        t.active,
         t.platform,
+        t.times,
         t.visit_count,
         t.create_date
     </sql>
@@ -33,6 +36,9 @@
           t.user_id = #{userId}
         and
           t.type = #{type}
+        <if test="platform != null and platform != ''">
+            and t.platform = #{platform}
+        </if>
         order by t.create_date desc, t.platform asc
     </select>
 
@@ -48,15 +54,19 @@
           t.type = #{type}
         and
           t.platform = #{platform}
+        <if test="wechat != null and wechat != ''">
+            and t.wechat = #{wechat}
+        </if>
+        and t.active = 1
         order by t.create_date desc, t.platform asc
     </select>
 
     <!--添加文章-->
     <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.article.entity.Article">
         insert into hg_article(
-          `url`, `type`, `platform`, `user_id`, `create_date`
+          `url`, `type`, `platform`, wechat, `user_id`, `times`, `create_date`
         ) values (
-          #{url}, #{type}, #{platform}, #{userId}, #{createDate}
+          #{url}, #{type}, #{platform}, #{wechat}, #{userId}, #{times}, #{createDate}
         )
     </insert>
 
@@ -66,6 +76,21 @@
             #{id}
         </foreach>
     </delete>
+
+    <update id="update" parameterType="java.util.List">
+        update hg_article t set t.active = (!t.active), t.visit_count = 0 where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateActive" parameterType="long">
+        update hg_article t set t.active = (!t.active) where id = #{id}
+    </update>
+
+    <update id="updateTimes" parameterType="long">
+        update hg_article t set t.visit_count = (t.visit_count+1) where id = #{id}
+    </update>
 
     <select id="queryPlatforms" parameterType="long" resultType="string">
         select

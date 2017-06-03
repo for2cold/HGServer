@@ -27,10 +27,11 @@ public class ArticleRepository {
     @Resource
     private ArticleMapper articleMapper;
 
-    public List<Article> queryList(Long userId, Integer type) {
+    public List<Article> queryList(Long userId, Integer type, String platform) {
         Map<String, Object> context = Maps.newHashMap();
         context.put("userId", userId);
         context.put("type", type);
+        context.put("platform", platform);
         return articleMapper.findList(context);
     }
 
@@ -43,11 +44,12 @@ public class ArticleRepository {
         articleMapper.delete(idList);
     }
 
-    public List<Article> queryList(Long userId, Integer type, String platform) {
+    public List<Article> queryList(Long userId, Integer type, String platform, String wechat) {
         Map<String, Object> context = Maps.newHashMap();
         context.put("userId", userId);
         context.put("type", type);
         context.put("platform", platform);
+        context.put("wechat", wechat);
         return articleMapper.queryList(context);
     }
 
@@ -64,5 +66,18 @@ public class ArticleRepository {
 
     public void savePlatform(ArticlePlatform platform) {
         articleMapper.savePlatform(platform);
+    }
+
+    public void update(Long[] ids) {
+        List<Long> idList = Arrays.asList(ids);
+        articleMapper.update(idList);
+    }
+
+    public void updateActive(Long id) {
+        articleMapper.updateActive(id);
+    }
+
+    public void updateTimes(Long id) {
+        articleMapper.updateTimes(id);
     }
 }

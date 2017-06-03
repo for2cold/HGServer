@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kazyle.hugohelper.server.function.core.balance.mapper.BalanceMapper">
+
+    <resultMap id="BalanceResultMap" type="com.kazyle.hugohelper.server.function.core.balance.entity.Balance">
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="select_fields">
+        t.id,
+        t.user_id,
+        t.username,
+        t.type,
+        t.platform,
+        t.params,
+        t.date
+    </sql>
+
+    <select id="findAll" parameterType="map" resultMap="BalanceResultMap">
+        select
+          <include refid="select_fields" />
+        from hg_balance t
+        where
+          t.user_id = #{userId}
+        and
+        t.type = #{type}
+        <if test="platform != null and platform != ''">
+            and t.platform = #{platform}
+        </if>
+        order by t.platform asc
+    </select>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.balance.entity.Balance">
+        insert into hg_balance(
+        `params`, `type`, `platform`, `username`, `user_id`
+        ) values (
+        #{params}, #{type}, #{platform}, #{username}, #{userId}
+        )
+    </insert>
+
+    <select id="countOne" parameterType="map" resultType="long">
+        select count(t.id) from hg_balance t
+        where
+          t.user_id = #{userId}
+        and
+          t.username = #{username}
+        and
+          t.type = #{type}
+        and
+          t.platform = #{platform}
+    </select>
+
+    <delete id="delete" parameterType="java.util.List">
+        delete from hg_balance where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="findByIds" parameterType="java.util.List" resultMap="BalanceResultMap">
+        select
+          <include refid="select_fields" />
+        from hg_balance t
+        where
+          t.id in
+          <foreach item="id" collection="list" open="(" separator="," close=")">
+              #{id}
+          </foreach>
+    </select>
+
+    <update id="update" parameterType="map">
+        update hg_balance t set t.date = #{date} where t.id = #{id}
+    </update>
+
+</mapper>

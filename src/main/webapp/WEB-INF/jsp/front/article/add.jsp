@@ -53,13 +53,31 @@
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label class="control-label col-md-4 col-sm-4">链接访问次数</label>
+                                <div class="col-md-6 col-sm-6">
+                                    <input class="form-control" type="text" id="times" name="times" value="20" data-type="alphanum" placeholder="" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-4 col-sm-4">微信号</label>
+                                <div class="col-md-6 col-sm-6">
+                                    <input class="form-control" type="text" id="wechat" name="wechat"  data-type="alphanum" placeholder="微信号，非必填" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-4 col-sm-4" for="url">余额查询参数</label>
+                                <div class="col-md-6 col-sm-6">
+                                    <textarea class="form-control" id="params" name="params" rows="4" data-parsley-range="[5,500]"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label class="control-label col-md-4 col-sm-4"></label>
                                 <div class="col-md-6 col-sm-6">
                                     <c:if test="${empty type}">
                                         <a href="${ctx}/front/article/index" class="btn btn-default">取消</a>
                                     </c:if>
                                     <c:if test="${not empty type}">
-                                        <a href="${ctx}/front/article/index?type=${type}" class="btn btn-default">取消</a>
+                                        <a href="${ctx}/front/article/index?type=${type}&platform=${platform}" class="btn btn-default">取消</a>
                                     </c:if>
                                     <button type="submit" class="btn btn-success">提交</button>
                                 </div>
