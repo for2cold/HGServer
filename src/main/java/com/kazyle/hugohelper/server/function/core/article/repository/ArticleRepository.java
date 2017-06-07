@@ -44,11 +44,11 @@ public class ArticleRepository {
         articleMapper.delete(idList);
     }
 
-    public List<Article> queryList(Long userId, Integer type, String platform, String wechat) {
+    public List<Article> queryList(Long userId, Integer type, List<String> platforms, String wechat) {
         Map<String, Object> context = Maps.newHashMap();
         context.put("userId", userId);
         context.put("type", type);
-        context.put("platform", platform);
+        context.put("platforms", platforms);
         context.put("wechat", wechat);
         return articleMapper.queryList(context);
     }
@@ -79,5 +79,34 @@ public class ArticleRepository {
 
     public void updateTimes(Long id) {
         articleMapper.updateTimes(id);
+    }
+
+    public void updateHold(Long userId, String platform, Integer type, String wechat, int hold) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", userId);
+        context.put("platform", platform);
+        context.put("type", type);
+        context.put("wechat", wechat);
+        context.put("hold", hold);
+        articleMapper.updateHold(context);
+    }
+
+    public Article findOne(Long id) {
+        return articleMapper.findOne(id);
+    }
+
+    public void updateEntity(Article pojo) {
+        articleMapper.updateEntity(pojo);
+    }
+
+    public void autoStop(String platform, String username, Integer type, Long userId) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", userId);
+        context.put("platform", platform);
+        context.put("type", type);
+        context.put("wechat", username);
+        context.put("active", 0);
+        context.put("visitCount", 0);
+        articleMapper.autoStop(context);
     }
 }

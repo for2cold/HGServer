@@ -82,4 +82,12 @@ public interface ArticleMapper {
      * @param id
      */
     void updateTimes(Long id);
+
+    void updateHold(Map<String, Object> context);
+
+    Article findOne(Long id);
+
+    void updateEntity(Article pojo);
+
+    void autoStop(Map<String, Object> context);
 }

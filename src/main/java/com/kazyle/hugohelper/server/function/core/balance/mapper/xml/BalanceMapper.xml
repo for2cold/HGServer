@@ -4,6 +4,7 @@
 
     <resultMap id="BalanceResultMap" type="com.kazyle.hugohelper.server.function.core.balance.entity.Balance">
         <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="article_active" property="articleActive"/>
     </resultMap>
 
     <sql id="select_fields">
@@ -13,12 +14,14 @@
         t.type,
         t.platform,
         t.params,
-        t.date
+        t.date,
+        t.withdraw
     </sql>
 
     <select id="findAll" parameterType="map" resultMap="BalanceResultMap">
         select
-          <include refid="select_fields" />
+          <include refid="select_fields" />,
+          (select group_concat(if((ta.active - ta.hold)&lt;0, 0, (ta.active - ta.hold))) from hg_article ta where ta.platform = t.platform and ta.user_id = t.user_id and ta.type = t.type and ta.wechat = t.username) as article_active
         from hg_balance t
         where
           t.user_id = #{userId}
@@ -27,14 +30,25 @@
         <if test="platform != null and platform != ''">
             and t.platform = #{platform}
         </if>
+        <if test="date != null">
+             and t.date &lt;= #{date}
+        </if>
         order by t.platform asc
+    </select>
+
+    <select id="findOne" parameterType="long" resultMap="BalanceResultMap">
+        select
+          <include refid="select_fields" />
+        from hg_balance t
+        where
+          t.id = #{id}
     </select>
 
     <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="com.kazyle.hugohelper.server.function.core.balance.entity.Balance">
         insert into hg_balance(
-        `params`, `type`, `platform`, `username`, `user_id`
+        `params`, `type`, `platform`, `username`, `user_id`, `withdraw`
         ) values (
-        #{params}, #{type}, #{platform}, #{username}, #{userId}
+        #{params}, #{type}, #{platform}, #{username}, #{userId}, #{withdraw}
         )
     </insert>
 
@@ -70,6 +84,10 @@
 
     <update id="update" parameterType="map">
         update hg_balance t set t.date = #{date} where t.id = #{id}
+    </update>
+
+    <update id="updateWithdraw" parameterType="map">
+        update hg_balance t set t.withdraw = #{withdraw} where t.id = #{id}
     </update>
 
 </mapper>

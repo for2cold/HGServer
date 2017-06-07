@@ -26,11 +26,12 @@ public class BalanceRepository {
     @Resource
     private BalanceMapper balanceMapper;
 
-    public List<Balance> findAll(Long userId, String platform, Integer type) {
+    public List<Balance> findAll(Long userId, String platform, Integer type, Date date) {
         Map<String, Object> context = Maps.newHashMap();
         context.put("userId", userId);
         context.put("platform", platform);
         context.put("type", type);
+        context.put("date", date);
         return balanceMapper.findAll(context);
     }
 
@@ -62,5 +63,16 @@ public class BalanceRepository {
         context.put("id", id);
         context.put("date", date);
         balanceMapper.update(context);
+    }
+
+    public void updateWithdraw(Long id, String withdraw) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("id", id);
+        context.put("withdraw", withdraw);
+        balanceMapper.updateWithdraw(context);
+    }
+
+    public Balance findOne(Long id) {
+        return balanceMapper.findOne(id);
     }
 }

@@ -14,7 +14,7 @@
     <c:if test="${empty type}">
         <hg:Sidebar id="article"/>
     </c:if>
-    <c:if test="${not empty type}">
+    <c:if test="${not empty type and type == 1}">
         <hg:Sidebar id="article-1"/>
     </c:if>
     <!-- begin #content -->
@@ -29,6 +29,7 @@
             </c:if>
             <a href="javascript:;" id="btn-remove" class="btn btn-sm btn-danger"><i class="fa m-r-5 fa-trash"></i>删除</a>
             <a href="javascript:;" id="btn-update" class="btn btn-sm btn-success"><i class="fa m-r-5 fa-exchange"></i>更新状态</a>
+            <a href="javascript:;" id="btn-query" class="btn btn-sm btn-success"><i class="fa fa-refresh m-r-5"></i> 刷新</a>
         </div>
         <!-- begin row -->
         <div class="row">
@@ -68,47 +69,11 @@
                                 <th>微信号</th>
                                 <th>最大访问次数</th>
                                 <th>已访问次数</th>
-                                <th>创建时间</th>
+                                <th>添加时间</th>
+                                <th>操作</th>
                             </tr>
                             </thead>
-                            <tbody>
-                            <c:if test="${fn:length(articles) > 0}">
-                                <c:forEach items="${articles}" var="item" varStatus="status">
-                                    <tr>
-                                        <td>
-                                            <input type="checkbox" name="ids" value="${item.id}">
-                                        </td>
-                                        <td>${status.index + 1}</td>
-                                        <td>${item.platform}</td>
-                                        <td>
-                                            <span title="${item.url}">
-                                                ${item.shortUrl}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <c:if test="${item.active == 1}">
-                                                <span class="label label-success">运行</span>
-                                            </c:if>
-                                            <c:if test="${item.active != 1}">
-                                                <span class="label label-danger">暂停</span>
-                                            </c:if>
-                                        </td>
-                                        <td>${item.wechat}</td>
-                                        <th>${item.times}</th>
-                                        <th>${item.visitCount}</th>
-                                        <td>
-                                            <fmt:formatDate value="${item.createDate}" pattern="yyyy-MM-dd HH:mm"/>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:if>
-                            <c:if test="${fn:length(articles) == 0}">
-                                <tr>
-                                    <td class="text-center" colspan="9">
-                                        暂无数据
-                                    </td>
-                                </tr>
-                            </c:if>
+                            <tbody id="articleTable">
                             </tbody>
                         </table>
                     </div>
@@ -125,27 +90,54 @@
 </div>
 </body>
 <hg:PageFooter />
+<script type="text/html" id="notDataTpl">
+    <tr><td class="text-center" colspan="10">暂无数据</td></tr>
+</script>
+<script type="text/html" id="loadDataTpl">
+    <tr><td class="text-center" colspan="10">查询中，请稍后</td></tr>
+</script>
+<script type="text/html" id="rowTpl">
+    <tr>
+    <tr>
+        <td>
+            <input type="checkbox" class="ids" name="ids" value="">
+        </td>
+        <td class="index"></td>
+        <td class="platform"></td>
+        <td class="url">
+            <span title=""></span>
+        </td>
+        <td class="status"></td>
+        <td class="wechat"></td>
+        <td class="times"></td>
+        <td class="visitCount"></td>
+        <td class="createDate"></td>
+        <td>
+            <a href="${ctx}/front/article/{id}/update" class="btn btn-sm btn-success btn-update">
+                修改
+            </a>
+        </td>
+    </tr>
+    </tr>
+</script>
 <script src="${ctx}/js/jquery.gritter.js"></script>
 <script src="${ctx}/js/bootstrap-select.min.js"></script>
 <script>
+    var loadData = $('#loadDataTpl').html();
+    var notData = $('#notDataTpl').html();
     $(document).ready(function() {
         App.init();
+        $('#platform').find('option[value="瞎转"]').attr('selected', true);
+        query();
         $('#platform').change(function() {
-            var url = '${ctx}/front/article/index';
-            if ('${type}' == '1') {
-                url += '?type=1'
-            }
-            $('#searchForm').attr('action', url);
-            $('#searchForm').submit();
+            query();
+        });
+        $('#btn-query').click(function() {
+            query();
         });
         $('#ids').click(function() {
             var checked = $(this).prop('checked');
             $('input[name="ids"]').prop('checked', checked);
-        });
-        $('input[name="ids"]').click(function() {
-            var checked = $(this).attr('checked');
-            $(this).prop('checked', !checked);
-            return false;
         });
         $('table tbody > tr').click(function() {
             var $target = $(this).find('input[type="checkbox"]');
@@ -169,7 +161,7 @@
                         class_name: 'gritter-light',
                         time: 2000,
                         after_close: function() {
-                            window.location.reload();
+                            query();
                         }
                     });
                 } else {
@@ -204,7 +196,7 @@
                         class_name: 'gritter-light',
                         time: 2000,
                         after_close: function() {
-                            window.location.reload();
+                            query();
                         }
                     });
                 } else {
@@ -224,5 +216,53 @@
             });
         });
     });
+
+    function query() {
+        $('#articleTable').html(loadData);
+        // 获取所有链接
+        var platform = $('#platform').val() || '瞎转';
+        var type = '${type}';
+
+        $.get('${ctx}/front/article/list', {
+            'platform': platform,
+            'type': type
+        }).done(function(resp) {
+            if (resp.code == 1000) {
+                $('#articleTable').html('');
+                var articles = resp.data;
+                if (articles.length == 0) {
+                    $('#articleTable').html(notData);
+                }
+                for (var i = 0; i < articles.length; i++) {
+                    var article = articles[i];
+                    var row = $('#rowTpl').html();
+                    var $row = $(row);
+                    $row.find('.ids').val(article.id);
+                    $row.find('.index').text(i + 1);
+                    $row.find('.platform').text(article.platform);
+                    $row.find('.url').find('span').attr('title', article.url).text(article.shortUrl);
+                    if (article.active) {
+                        $row.find('.status').html('<span class="label label-success">运行中</span>');
+                    } else {
+                        $row.find('.status').html('<span class="label label-danger">已暂停</span>');
+                    }
+                    $row.find('.wechat').text(article.wechat);
+                    $row.find('.times').text(article.times);
+                    $row.find('.visitCount').text(article.visitCount);
+                    var time = article.createDate;
+                    var date = new Date();
+                    date.setTime(time);
+                    $row.find('.createDate').text(date.toLocaleDateString());
+                    var href = $row.find('.btn-update').attr('href');
+                    href = href.replace(/{id}/, article.id);
+                    $row.find('.btn-update').attr('href', href);
+                    $('#articleTable').append($row);
+                }
+            } else {
+                alert(resp.msg);
+            }
+        });
+    }
+
 </script>
 </html>

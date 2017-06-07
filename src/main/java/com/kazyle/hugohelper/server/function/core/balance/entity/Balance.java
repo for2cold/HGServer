@@ -35,7 +35,13 @@ public class Balance implements Serializable {
 
     private String params;
 
+    private String withdraw;
+
     private String block;
+
+    private String articleActive;
+
+    private int artcleStatus;
 
     public String getUsername() {
         return username;
@@ -115,5 +121,29 @@ public class Balance implements Serializable {
 
     public void setToday(String today) {
         this.today = today;
+    }
+
+    public String getWithdraw() {
+        return withdraw;
+    }
+
+    public void setWithdraw(String withdraw) {
+        this.withdraw = withdraw;
+    }
+
+    public String getArticleActive() {
+        return articleActive;
+    }
+
+    public void setArticleActive(String articleActive) {
+        this.articleActive = articleActive;
+    }
+
+    public int getArtcleStatus() {
+        return artcleStatus;
+    }
+
+    public void setArtcleStatus(int artcleStatus) {
+        this.artcleStatus = artcleStatus;
     }
 }

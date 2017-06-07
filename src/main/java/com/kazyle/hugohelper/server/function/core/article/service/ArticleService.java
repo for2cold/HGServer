@@ -59,4 +59,8 @@ public interface ArticleService {
      * @param ids
      */
     void update(Long[] ids);
+
+    Article findOne(Long id);
+
+    void update(Long id, Article pojo);
 }

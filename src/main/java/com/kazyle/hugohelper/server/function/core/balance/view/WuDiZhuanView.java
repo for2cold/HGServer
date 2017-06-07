@@ -21,7 +21,7 @@ public class WuDiZhuanView {
 
     private String jifenbao;
 
-    private String day_fc_jifenbao;
+    private String day_zhuanfa_jifenbao;
 
     public String getBlock_remark() {
         return block_remark;
@@ -63,11 +63,11 @@ public class WuDiZhuanView {
         this.jifenbao = jifenbao;
     }
 
-    public String getDay_fc_jifenbao() {
-        return day_fc_jifenbao;
+    public String getDay_zhuanfa_jifenbao() {
+        return day_zhuanfa_jifenbao;
     }
 
-    public void setDay_fc_jifenbao(String day_fc_jifenbao) {
-        this.day_fc_jifenbao = day_fc_jifenbao;
+    public void setDay_zhuanfa_jifenbao(String day_zhuanfa_jifenbao) {
+        this.day_zhuanfa_jifenbao = day_zhuanfa_jifenbao;
     }
 }

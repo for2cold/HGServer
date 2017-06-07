@@ -29,18 +29,24 @@
                         <div class="panel-heading-btn">
                             <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                         </div>
-                        <h4 class="panel-title">添加链接</h4>
+                        <h4 class="panel-title">修改链接</h4>
                     </div>
                     <div class="panel-body panel-form">
-                        <form action="${ctx}/front/article/add" method="post" class="form-horizontal form-bordered" data-parsley-validate="true" enctype="multipart/form-data">
-                            <input type="hidden" name="type" value="${type}">
+                        <form action="${ctx}/front/article/${pojo.id}/update" method="post" class="form-horizontal form-bordered" data-parsley-validate="true">
+                            <input type="hidden" name="type" value="${pojo.type}">
                             <div class="form-group">
                                 <label class="control-label col-md-4 col-sm-4 required">平台名称</label>
                                 <div class="col-md-6 col-sm-6">
                                     <select id="platform" name="platform" data-type="alphanum" data-parsley-required="true" class="form-control" multiple="multiple">
                                         <c:if test="${fn:length(platforms) > 0}">
                                             <c:forEach items="${platforms}" var="platform">
-                                                <option value="${platform}">${platform}</option>
+                                                <c:if test="${platform == pojo.platform}">
+                                                    <c:set var="selected" value="selected='selected'"/>
+                                                </c:if>
+                                                <c:if test="${platform != pojo.platform}">
+                                                    <c:set var="selected" value=""/>
+                                                </c:if>
+                                                <option value="${platform}" ${selected}>${platform}</option>
                                             </c:forEach>
                                         </c:if>
                                     </select>
@@ -49,19 +55,19 @@
                             <div class="form-group">
                                 <label class="control-label col-md-4 col-sm-4 required" for="url">文章链接</label>
                                 <div class="col-md-6 col-sm-6">
-                                    <textarea class="form-control" id="url" name="url" rows="4" data-parsley-required="true" data-parsley-range="[5,500]"></textarea>
+                                    <textarea class="form-control" id="url" name="url" rows="4" data-parsley-required="true" data-parsley-range="[5,500]">${pojo.url}</textarea>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="control-label col-md-4 col-sm-4">链接访问次数</label>
                                 <div class="col-md-6 col-sm-6">
-                                    <input class="form-control" type="text" id="times" name="times" value="20" data-type="alphanum" placeholder="" />
+                                    <input class="form-control" type="text" value="${pojo.times}" id="times" name="times" value="20" data-type="alphanum" placeholder="" />
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="control-label col-md-4 col-sm-4">账号</label>
                                 <div class="col-md-6 col-sm-6">
-                                    <input class="form-control" type="text" id="wechat" name="wechat"  data-type="alphanum" placeholder="微信号，非必填" />
+                                    <input class="form-control" type="text" value="${pojo.wechat}" id="wechat" name="wechat"  data-type="alphanum" placeholder="微信号，非必填" />
                                 </div>
                             </div>
                             <div class="form-group">

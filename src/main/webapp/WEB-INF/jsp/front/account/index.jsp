@@ -247,9 +247,6 @@
     $(document).ready(function() {
         App.init();
     });
-    window.onbeforeunload = function(){
-        return "离开前，请确认数据已保存！";
-    }
 </script>
 <script type="text/javascript">
 var ctx = '${ctx}';

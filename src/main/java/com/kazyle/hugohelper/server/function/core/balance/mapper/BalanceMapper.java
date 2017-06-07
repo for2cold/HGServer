@@ -29,4 +29,8 @@ public interface BalanceMapper {
     List<Balance> findByIds(List<Long> idList);
 
     void update(Map<String, Object> context);
+
+    void updateWithdraw(Map<String, Object> context);
+
+    Balance findOne(Long id);
 }

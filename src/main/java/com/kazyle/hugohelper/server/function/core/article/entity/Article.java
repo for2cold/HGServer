@@ -33,6 +33,8 @@ public class Article implements Serializable {
 
     private Integer active;
 
+    private Integer hold;
+
     private String wechat;
 
     private Date createDate;
@@ -133,5 +135,13 @@ public class Article implements Serializable {
 
     public void setParams(String params) {
         this.params = params;
+    }
+
+    public Integer getHold() {
+        return hold;
+    }
+
+    public void setHold(Integer hold) {
+        this.hold = hold;
     }
 }

@@ -22,7 +22,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/api/article")
-public class ArticleApkController extends BaseController<Article> {
+public class ArticleApiController extends BaseController<Article> {
 
     @Resource
     private ArticleService articleService;

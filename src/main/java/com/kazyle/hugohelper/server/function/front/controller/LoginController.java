@@ -9,7 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
@@ -56,7 +55,7 @@ public class LoginController {
             model.addAttribute(Constants.ERROR_MSG, "登录失败，请稍后再试");
             return "front/login";
         }
-        return "redirect:/front/phonedata/index";
+        return "redirect:/front/balance/index";
     }
 
     @RequestMapping("/logout")

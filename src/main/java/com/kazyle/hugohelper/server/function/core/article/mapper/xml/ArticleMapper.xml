@@ -35,6 +35,8 @@
         where
           t.user_id = #{userId}
         and
+          t.hold = 0
+        and
           t.type = #{type}
         <if test="platform != null and platform != ''">
             and t.platform = #{platform}
@@ -51,9 +53,14 @@
         where
           t.user_id = #{userId}
         and
+          t.hold = 0
+        and
           t.type = #{type}
         and
-          t.platform = #{platform}
+          t.platform in
+        <foreach item="platform" collection="platforms" open="(" separator="," close=")">
+            #{platform}
+        </foreach>
         <if test="wechat != null and wechat != ''">
             and t.wechat = #{wechat}
         </if>
@@ -69,6 +76,16 @@
           #{url}, #{type}, #{platform}, #{wechat}, #{userId}, #{times}, #{createDate}
         )
     </insert>
+
+    <update id="updateEntity" parameterType="com.kazyle.hugohelper.server.function.core.article.entity.Article">
+        update hg_article t set t.platform = #{platform}, t.url = #{url}, t.times = #{times}, t.wechat = #{wechat}, t.visit_count = #{visitCount}
+        where t.id = #{id}
+    </update>
+
+    <update id="autoStop" parameterType="map">
+        update hg_article t set t.active = #{active}, t.visit_count = #{visitCount}
+        where t.platform = #{platform} and t.user_id = #{userId} and t.wechat = #{wechat} and t.type = #{type}
+    </update>
 
     <delete id="delete" parameterType="java.util.List">
         delete from hg_article where id in
@@ -120,5 +137,20 @@
           #{name}, #{userId}, #{createDate}
         )
     </insert>
+
+    <update id="updateHold" parameterType="map">
+        update hg_article t set t.hold = #{hold}, t.visit_count = 0
+        where
+          t.user_id = #{userId} and t.platform = #{platform} and t.type = #{type} and t.wechat = #{wechat}
+    </update>
+
+    <select id="findOne" parameterType="long" resultMap="ArticleResultMap">
+        select
+        <include refid="select_fields" />
+        from
+        hg_article t
+        where
+        t.id = #{id}
+    </select>
 
 </mapper>

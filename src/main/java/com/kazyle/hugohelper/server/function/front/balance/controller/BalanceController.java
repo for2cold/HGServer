@@ -7,14 +7,18 @@ import com.kazyle.hugohelper.server.config.domain.data.ResponseEntity;
 import com.kazyle.hugohelper.server.function.core.article.service.ArticleService;
 import com.kazyle.hugohelper.server.function.core.balance.entity.Balance;
 import com.kazyle.hugohelper.server.function.core.balance.service.BalanceService;
+import com.kazyle.hugohelper.server.function.core.balance.view.WuDiZhuanRecordView;
 import com.kazyle.hugohelper.server.function.core.user.entity.User;
+import com.kazyle.hugohelper.server.function.front.balance.form.QueryForm;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -46,9 +50,9 @@ public class BalanceController extends BaseFrontController<Balance> {
 
     @RequestMapping("/list")
     @ResponseBody
-    public ResponseEntity list(@CurrentUser User user, String platform, Integer type) {
+    public ResponseEntity list(@CurrentUser User user, QueryForm form) {
         ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "success");
-        List<Balance> balances = balanceService.findAll(user.getId(), platform, type);
+        List<Balance> balances = balanceService.findAll(user.getId(), form.getPlatform(), form.getType(), form.getDate());
         entity.setObj(balances);
         return entity;
     }
@@ -66,6 +70,21 @@ public class BalanceController extends BaseFrontController<Balance> {
     public ResponseEntity updateDate(Long[] ids) {
         ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "存档更新成功！");
         balanceService.updateDate(ids);
+        return entity;
+    }
+
+    @RequestMapping(value = "/{id}/withdraw", method = RequestMethod.GET)
+    public String withdraw(@PathVariable("id") Long id) throws IOException {
+        String url = balanceService.getWithdrawUrl(id);
+        return redirectToUrl(url);
+    }
+
+    @RequestMapping(value = "/{id}/record", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity record(@PathVariable("id") Long id) {
+        ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "获取提现记录成功！");
+        List<WuDiZhuanRecordView> records = balanceService.getRecord(id);
+        entity.setObj(records);
         return entity;
     }
 }

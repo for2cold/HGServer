@@ -9,6 +9,7 @@ import com.kazyle.hugohelper.server.function.core.article.service.ArticleService
 import com.kazyle.hugohelper.server.function.core.user.entity.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -39,11 +40,18 @@ public class ArticleController extends BaseFrontController<Article> {
     public String index(@CurrentUser User user, Integer type, String platform, Model model) {
         List<String> platforms = articleService.queryPlatforms(user.getId());
         model.addAttribute("platforms", platforms);
-        List<Article> articles = articleService.queryList(user.getId(), type, platform);
-        model.addAttribute("articles", articles);
         model.addAttribute("type", type);
         model.addAttribute("platform", platform);
         return viewName("index");
+    }
+
+    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity list(@CurrentUser User user, Integer type, String platform) {
+        ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "success");
+        List<Article> articles = articleService.queryList(user.getId(), type, platform);
+        entity.setObj(articles);
+        return entity;
     }
 
     @RequestMapping(value = "/add", method = RequestMethod.GET)
@@ -82,5 +90,25 @@ public class ArticleController extends BaseFrontController<Article> {
         ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "状态更新成功！");
         articleService.update(ids);
         return entity;
+    }
+
+    @RequestMapping(value = "{id}/update", method = RequestMethod.GET)
+    public String edit(@PathVariable("id") Long id, Model model, @CurrentUser User user) {
+        List<String> platforms = articleService.queryPlatforms(user.getId());
+        model.addAttribute("platforms", platforms);
+        Article pojo = articleService.findOne(id);
+        model.addAttribute("pojo", pojo);
+        return viewName("edit");
+    }
+
+    @RequestMapping(value = "/{id}/update", method = RequestMethod.POST)
+    public String edit(@PathVariable("id") Long id, Article pojo) throws UnsupportedEncodingException {
+        ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "修改成功！");
+        articleService.update(id, pojo);
+        String url = "/front/article/index";
+        if (pojo.getType() != null) {
+            url += "?type=" + pojo.getType() + "&platform=" + URLEncoder.encode(pojo.getPlatform(), "utf-8");
+        }
+        return redirectToUrl(url);
     }
 }

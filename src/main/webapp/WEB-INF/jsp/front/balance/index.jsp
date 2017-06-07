@@ -3,6 +3,7 @@
 <hg:PageHeader />
 <link href="${ctx}/css/jquery.gritter.css" rel="stylesheet" />
 <link rel="stylesheet" href="${ctx}/css/bootstrap-select.min.css">
+<link rel="stylesheet" href="${ctx}/css/datetimepicker.css">
 </head>
 <body>
 <!-- begin #page-loader -->
@@ -22,8 +23,9 @@
         <div id="data-loader" class="fade in hide"><span class="spinner" style="top: 40%;z-index:9999"></span></div>
         <div class="email-btn-row hidden-xs">
             <a href="javascript:;" id="btn-remove" class="btn btn-sm btn-danger"><i class="fa m-r-5 fa-trash"></i>删除</a>
-            <a href="javascript:;" id="btn-query" class="btn btn-sm btn-success"><i class="fa fa-refresh m-r-5"></i> 刷新</a>
             <a href="javascript:;" id="btn-exchange" class="btn btn-sm btn-success"><i class="fa fa-exchange m-r-5"></i> 存档</a>
+            <a href="${ctx}/front/article/add?type=${type}" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 添加链接</a>
+            <a href="javascript:;" id="btn-query" class="btn btn-sm btn-success"><i class="fa fa-refresh m-r-5"></i> 刷新</a>
         </div>
         <!-- begin row -->
         <div class="row">
@@ -49,6 +51,10 @@
                                     </c:if>
                                 </select>
                             </div>
+                            <label class="control-label">登记日期：</label>
+                            <div class="form-group m-r-4">
+                                <input type="text" class="form-control" id="period" name="periodDate" value="" />
+                            </div>
                         </form>
                         <table class="table table-hover">
                             <thead>
@@ -62,6 +68,8 @@
                                 <th>今日收入</th>
                                 <th>登记日期</th>
                                 <th>状态</th>
+                                <th>链接状态</th>
+                                <th>提现</th>
                             </tr>
                             </thead>
                             <tbody id="balanceTable">
@@ -81,12 +89,42 @@
     <!-- end scroll to top btn -->
 </div>
 </body>
+<div class="modal fade" id="record-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">提现记录</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive" style="max-height: 500px">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>标题</th>
+                            <th>状态</th>
+                            <th>描述</th>
+                            <th>日期</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">关闭</a>
+            </div>
+        </div>
+    </div>
+</div>
 <hg:PageFooter />
 <script type="text/html" id="notDataTpl">
-<tr><td class="text-center" colspan="8">暂无数据</td></tr>
+<tr><td class="text-center" colspan="9">暂无数据</td></tr>
 </script>
 <script type="text/html" id="loadDataTpl">
-    <tr><td class="text-center" colspan="8">查询中，请稍后</td></tr>
+    <tr><td class="text-center" colspan="9">查询中，请稍后</td></tr>
 </script>
 <script type="text/html" id="rowTpl">
     <tr>
@@ -99,15 +137,28 @@
         <td class="today"></td>
         <td class="date"></td>
         <td class="status"></td>
+        <td class="artcleStatus"></td>
+        <td>
+            <a href="${ctx}/front/balance/{id}/withdraw" target="_blank" class="btn btn-sm btn-primary btn-withdraw">提现</a>
+            <a style="display: none;" href="javascript:void(0);" class="btn btn-sm btn-info btn-record" data-id="">提现记录</a>
+        </td>
     </tr>
 </script>
 <script src="${ctx}/js/jquery.gritter.js"></script>
 <script src="${ctx}/js/bootstrap-select.min.js"></script>
+<script src="${ctx}/js/bootstrap-datetimepicker.min.js"></script>
 <script>
     var loadData = $('#loadDataTpl').html();
     var notData = $('#notDataTpl').html();
     $(document).ready(function() {
         App.init();
+        $('#period').datetimepicker({
+            format: 'yyyy-mm-dd',
+            minView: 2,
+            startView: 2,
+            autoclose: true,
+            startDate: new Date()
+        });
         $('#platform').find('option[value="瞎转"]').attr('selected', true);
         query();
         $('#btn-query').click(function() {
@@ -125,10 +176,30 @@
             $(this).prop('checked', !checked);
             return false;
         });
-        $('body').on('click', 'table tbody > tr', function() {
-            var $target = $(this).find('input[type="checkbox"]');
-            var checked = $target.attr('checked');
-            $target.prop('checked', !checked);
+        $('body').on('click', '.btn-record', function() {
+            var id = $(this).attr('data-id');
+            var url = ctx + '/front/balance/' + id + '/record';
+            $.get(url).done(function(resp) {
+                if (resp.code == 1000) {
+                    $('#record-modal').modal();
+                    var datas = resp.data;
+                    $('#record-modal table tbody').html('');
+                    if (datas && datas.length > 0) {
+                        for (var i = 0; i < datas.length; ++i) {
+                            var record = datas[i];
+                            var $tr = $('<tr><td class="index"></td><td class="note"></td><td class="status"></td><td class="desc"></td><td class="date"></td></tr>');
+                            $tr.find('.index').text((i + 1));
+                            $tr.find('.note').text(record.note);
+                            $tr.find('.status').html(record.remark);
+                            $tr.find('.desc').text(record.description);
+                            $tr.find('.date').text(record.tixianDate);
+                            $('#record-modal table tbody').append($tr);
+                        }
+                    } else {
+                        $('#record-modal table tbody').html('<tr><td class="text-center" colspan="5">暂无记录</td></tr>');
+                    }
+                }
+            });
         });
         // 删除
         $('#btn-remove').click(function() {
@@ -208,10 +279,12 @@
         // 获取所有账号余额
         var platform = $('#platform').val() || '瞎转';
         var type = '${type}';
+        var date = $('#period').val();
 
         $.get('${ctx}/front/balance/list', {
             'platform': platform,
-            'type': type
+            'type': type,
+            'date': date
         }).done(function(resp) {
             if (resp.code == 1000) {
                 $('#balanceTable').html('');
@@ -248,6 +321,23 @@
                         $row.find('.status').html('<span class="label label-danger">' + balance.block + '</span>');
                     } else {
                         $row.find('.status').html('<span class="label label-success">正常</span>');
+                    }
+                    var href = $row.find('.btn-withdraw').attr('href');
+                    href = href.replace(/{id}/, balance.id);
+                    $row.find('.btn-withdraw').attr('href', href);
+                    $row.find('.btn-record').attr('data-id', balance.id);
+                    if (platform == '无敌赚') {
+                        $row.find('.btn-record').show();
+                    } else {
+                        $row.find('.btn-record').hide();
+                    }
+                    var artcleStatus = balance.artcleStatus;
+                    if (artcleStatus == 0) {
+                        $row.find('.artcleStatus').html('<span class="label label-danger">已暂停</span>');
+                    } else if (artcleStatus == 1) {
+                        $row.find('.artcleStatus').html('<span class="label label-success">运行中</span>');
+                    } else {
+                        $row.find('.artcleStatus').html('<span class="label label-warning">无链接</span>');
                     }
                     $('#balanceTable').append($row);
                 }
