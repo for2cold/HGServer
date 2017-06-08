@@ -128,9 +128,9 @@
                 <h4 class="modal-title">批量导入账号</h4>
             </div>
             <div class="modal-body">
-                <form action="" method="post" class="form-horizontal form-bordered" data-parsley-validate="true" enctype="multipart/form-data">
+                <form id="importForm" method="post" class="form-horizontal form-bordered" data-parsley-validate="true" enctype="multipart/form-data">
                     <div class="form-group">
-                        <a href="${ctx}/dl/tpl/批量导入账号模板.xls" target="_blank">下载批量导入账号模板</a>
+                        <a href="${ctx}/dl/tpl/import_tpl.xls" target="_blank">下载批量导入账号模板</a>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-md-4 col-sm-4 required" for="file">文件</label>
@@ -141,7 +141,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <a href="javascript:;" class="btn btn-sm btn-primary btnImport">确定</a>
+                <a href="javascript:;" class="btn btn-sm btn-primary" id="btnImport">确定</a>
                 <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">关闭</a>
             </div>
         </div>
@@ -167,6 +167,7 @@
         <td class="status"></td>
         <td class="artcleStatus"></td>
         <td>
+            <a href="javascript:void(0);" class="btn btn-sm btn-info btn-update" data-id="">更新链接状态</a>
             <a href="${ctx}/front/balance/{id}/withdraw" target="_blank" class="btn btn-sm btn-primary btn-withdraw">提现</a>
             <a style="display: none;" href="javascript:void(0);" class="btn btn-sm btn-info btn-record" data-id="">提现记录</a>
         </td>
@@ -199,14 +200,32 @@
         $('#btn-import').click(function() {
             $('#import-modal').modal();
         });
+        $('#btnImport').click(function() {
+            var form = new FormData($('#importForm')[0]);
+            $.ajax({
+                url: '${ctx}/front/balance/import',
+                type: 'post',
+                data: form,
+                processData:false,
+                contentType:false,
+                success: function(resp) {
+                    if (resp.code == 1000) {
+                        query();
+                    } else {
+                        alert(resp.msg);
+                    }
+                }
+            });
+        });
         $('#ids').click(function() {
             var checked = $(this).prop('checked');
             $('input[name="ids"]').prop('checked', checked);
         });
-        $('input[name="ids"]').click(function() {
-            var checked = $(this).attr('checked');
-            $(this).prop('checked', !checked);
-            return false;
+        $('body').on('click', 'table tbody > tr', function() {
+            var $target = $(this).find('input[type="checkbox"]');
+            var checked = $target.attr('checked');
+            $target.prop('checked', !checked);
+            $(this).toggleClass('tr-active');
         });
         $('body').on('click', '.btn-record', function() {
             var id = $(this).attr('data-id');
@@ -229,6 +248,21 @@
                         }
                     } else {
                         $('#record-modal table tbody').html('<tr><td class="text-center" colspan="5">暂无记录</td></tr>');
+                    }
+                }
+            });
+        });
+        $('body').on('click', '.btn-update', function() {
+            var id = $(this).attr('data-id');
+            var $row = $(this).parents('tr');
+            var url = '${ctx}/front/balance/' + id + '/update';
+            $.post(url).done(function(resp) {
+                if (resp.code == 1000) {
+                    var status = $row.find('.artcleStatus').attr('data-status');
+                    if (status == 0) {
+                        $row.find('.artcleStatus').html('<span class="label label-success">运行中</span>');
+                    } else if (status == 1) {
+                        $row.find('.artcleStatus').html('<span class="label label-danger">已停止</span>');
                     }
                 }
             });
@@ -358,6 +392,7 @@
                     href = href.replace(/{id}/, balance.id);
                     $row.find('.btn-withdraw').attr('href', href);
                     $row.find('.btn-record').attr('data-id', balance.id);
+                    $row.find('.btn-update').attr('data-id', balance.id);
                     if (platform == '无敌赚') {
                         $row.find('.btn-record').show();
                     } else {
@@ -371,6 +406,7 @@
                     } else {
                         $row.find('.artcleStatus').html('<span class="label label-warning">无链接</span>');
                     }
+                    $row.find('.artcleStatus').attr('data-status', artcleStatus)
                     $('#balanceTable').append($row);
                 }
             } else {

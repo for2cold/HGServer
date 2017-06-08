@@ -90,4 +90,6 @@ public interface ArticleMapper {
     void updateEntity(Article pojo);
 
     void autoStop(Map<String, Object> context);
+
+    void activeArticle(Map<String, Object> context);
 }

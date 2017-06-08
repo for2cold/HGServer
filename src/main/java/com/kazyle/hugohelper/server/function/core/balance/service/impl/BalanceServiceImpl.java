@@ -139,15 +139,13 @@ public class BalanceServiceImpl implements BalanceService {
                 if (!view.getIs_block().equals("0")) {
                     balance.setBlock(view.getBlock_remark());
                 }
-                if (balance.getType() == 1) {
-                    try {
-                        // 超过指定金额，自动停止链接
-                        double day_jifenbao = Double.parseDouble(balance.getToday());
-                        if (day_jifenbao >= xiaZhuanDayMoney) {
-                            articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
-                        }
-                    } catch (NumberFormatException e) {
+                try {
+                    // 超过指定金额，自动停止链接
+                    double day_jifenbao = Double.parseDouble(balance.getToday());
+                    if (day_jifenbao >= xiaZhuanDayMoney) {
+                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
                     }
+                } catch (NumberFormatException e) {
                 }
                 // 处理链接账号
                 String articleActive = balance.getArticleActive();
@@ -195,15 +193,13 @@ public class BalanceServiceImpl implements BalanceService {
                 if (!view.getIs_block().equals("0")) {
                     balance.setBlock(view.getBlock_remark());
                 }
-                if (balance.getType() == 1) {
-                    try {
-                        // 超过指定金额，自动停止链接
-                        double day_jifenbao = Double.parseDouble(balance.getToday());
-                        if (day_jifenbao >= wudiZhuanDayMoney) {
-                            articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
-                        }
-                    } catch (NumberFormatException e) {
+                try {
+                    // 超过指定金额，自动停止链接
+                    double day_jifenbao = Double.parseDouble(balance.getToday());
+                    if (day_jifenbao >= wudiZhuanDayMoney) {
+                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
                     }
+                } catch (NumberFormatException e) {
                 }
                 // 处理链接账号
                 String articleActive = balance.getArticleActive();
@@ -266,7 +262,7 @@ public class BalanceServiceImpl implements BalanceService {
                         balance.setArtcleStatus(1);
                     } else {
                         balance.setArtcleStatus(0);
-                    }
+                }
                 } else {
                     balance.setArtcleStatus(2);
                 }
@@ -418,6 +414,14 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
+    public void updateArticle(Long id) {
+        Balance pojo = balanceRepository.findOne(id);
+        if (null != pojo) {
+            articleRepository.activeArticle(pojo.getUserId(), pojo.getType(), pojo.getPlatform(), pojo.getUsername());
+        }
+    }
+
+    @Override
     public String importAccount(User user, Integer type, MultipartFile file) {
         String msg = "导入内容为空，请检查！";
         try {
@@ -432,15 +436,27 @@ public class BalanceServiceImpl implements BalanceService {
                 String username = list.get(0);
                 String platform = list.get(1);
                 String params = list.get(2);
-                String url = list.get(3);
-                String times = list.get(4);
+                String times = list.get(3);
+                String url = list.get(4);
                 if (StringUtils.isEmpty(username) || StringUtils.isEmpty(platform)
                         || StringUtils.isEmpty(params) || StringUtils.isEmpty(url)
                         || StringUtils.isEmpty(times)) {
                     errors.add(i);
                     continue;
                 }
+                int time;
+                try {
+                    time = Integer.parseInt(times);
+                } catch (NumberFormatException e) {
+                    time = 20;
+                }
                 Article pojo = new Article();
+                pojo.setPlatform(platform);
+                pojo.setUrl(url);
+                pojo.setWechat(username);
+                pojo.setParams(params);
+                pojo.setTimes(time);
+                pojo.setType(type);
                 articleService.save(user, pojo);
             }
             msg = "导入成功！";

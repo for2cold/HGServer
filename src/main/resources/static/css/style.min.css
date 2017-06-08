@@ -9,3 +9,4 @@ table td {color:#000}
 .control-label.required:after{color:#ff5b57;content: ' *'}
 .login-error{padding-left: 40px;padding-top:20px}
 .h1{font-weight:500;font-size:36px}
+.tr-active{background: #e2e7eb}

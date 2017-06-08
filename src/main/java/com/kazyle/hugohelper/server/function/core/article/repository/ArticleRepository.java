@@ -109,4 +109,14 @@ public class ArticleRepository {
         context.put("visitCount", 0);
         articleMapper.autoStop(context);
     }
+
+    public void activeArticle(Long userId, Integer type, String platform, String username) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", userId);
+        context.put("platform", platform);
+        context.put("type", type);
+        context.put("wechat", username);
+        context.put("visitCount", 0);
+        articleMapper.activeArticle(context);
+    }
 }

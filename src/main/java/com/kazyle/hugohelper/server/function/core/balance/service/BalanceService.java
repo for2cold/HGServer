@@ -33,4 +33,6 @@ public interface BalanceService {
     List<WuDiZhuanRecordView> getRecord(Long id);
 
     String importAccount(User user, Integer type, MultipartFile file);
+
+    void updateArticle(Long id);
 }

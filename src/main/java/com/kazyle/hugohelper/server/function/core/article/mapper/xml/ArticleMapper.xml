@@ -87,6 +87,11 @@
         where t.platform = #{platform} and t.user_id = #{userId} and t.wechat = #{wechat} and t.type = #{type}
     </update>
 
+    <update id="activeArticle" parameterType="map">
+        update hg_article t set t.active = (!t.active), t.visit_count = #{visitCount}
+        where t.platform = #{platform} and t.user_id = #{userId} and t.wechat = #{wechat} and t.type = #{type}
+    </update>
+
     <delete id="delete" parameterType="java.util.List">
         delete from hg_article where id in
         <foreach item="id" collection="list" open="(" separator="," close=")">

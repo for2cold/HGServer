@@ -139,12 +139,12 @@
             var checked = $(this).prop('checked');
             $('input[name="ids"]').prop('checked', checked);
         });
-        $('table tbody > tr').click(function() {
+        $('body').on('click', 'table tbody > tr', function() {
             var $target = $(this).find('input[type="checkbox"]');
             var checked = $target.attr('checked');
             $target.prop('checked', !checked);
+            $(this).toggleClass('tr-active');
         });
-
         $('#btn-remove').click(function() {
             var ids = $('input[name="ids"]:checked').serialize();
             if (!ids || ids.length == 0) {
