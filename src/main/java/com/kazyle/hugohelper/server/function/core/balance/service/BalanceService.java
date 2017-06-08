@@ -2,6 +2,8 @@ package com.kazyle.hugohelper.server.function.core.balance.service;
 
 import com.kazyle.hugohelper.server.function.core.balance.entity.Balance;
 import com.kazyle.hugohelper.server.function.core.balance.view.WuDiZhuanRecordView;
+import com.kazyle.hugohelper.server.function.core.user.entity.User;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Date;
@@ -29,4 +31,6 @@ public interface BalanceService {
     String getWithdrawUrl(Long id) throws IOException;
 
     List<WuDiZhuanRecordView> getRecord(Long id);
+
+    String importAccount(User user, Integer type, MultipartFile file);
 }

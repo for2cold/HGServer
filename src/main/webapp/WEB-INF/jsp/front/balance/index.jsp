@@ -25,6 +25,7 @@
             <a href="javascript:;" id="btn-remove" class="btn btn-sm btn-danger"><i class="fa m-r-5 fa-trash"></i>删除</a>
             <a href="javascript:;" id="btn-exchange" class="btn btn-sm btn-success"><i class="fa fa-exchange m-r-5"></i> 存档</a>
             <a href="${ctx}/front/article/add?type=${type}" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 添加链接</a>
+            <a href="javascript:;" id="btn-import" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 批量导入账号</a>
             <a href="javascript:;" id="btn-query" class="btn btn-sm btn-success"><i class="fa fa-refresh m-r-5"></i> 刷新</a>
         </div>
         <!-- begin row -->
@@ -119,6 +120,33 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="import-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">批量导入账号</h4>
+            </div>
+            <div class="modal-body">
+                <form action="" method="post" class="form-horizontal form-bordered" data-parsley-validate="true" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <a href="${ctx}/dl/tpl/批量导入账号模板.xls" target="_blank">下载批量导入账号模板</a>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-4 col-sm-4 required" for="file">文件</label>
+                        <div class="col-md-6 col-sm-6">
+                            <input class="form-control" type="file" id="file" name="file" required />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" class="btn btn-sm btn-primary btnImport">确定</a>
+                <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">关闭</a>
+            </div>
+        </div>
+    </div>
+</div>
 <hg:PageFooter />
 <script type="text/html" id="notDataTpl">
 <tr><td class="text-center" colspan="9">暂无数据</td></tr>
@@ -166,6 +194,10 @@
         });
         $('#platform').change(function() {
             query();
+        });
+        // 导入
+        $('#btn-import').click(function() {
+            $('#import-modal').modal();
         });
         $('#ids').click(function() {
             var checked = $(this).prop('checked');

@@ -2,18 +2,25 @@ package com.kazyle.hugohelper.server.function.core.balance.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.kazyle.hugohelper.server.config.util.ExcelUtils;
 import com.kazyle.hugohelper.server.config.util.HttpUtils;
+import com.kazyle.hugohelper.server.function.core.article.entity.Article;
 import com.kazyle.hugohelper.server.function.core.article.repository.ArticleRepository;
+import com.kazyle.hugohelper.server.function.core.article.service.ArticleService;
 import com.kazyle.hugohelper.server.function.core.balance.entity.Balance;
 import com.kazyle.hugohelper.server.function.core.balance.repository.BalanceRepository;
 import com.kazyle.hugohelper.server.function.core.balance.service.BalanceService;
 import com.kazyle.hugohelper.server.function.core.balance.view.*;
+import com.kazyle.hugohelper.server.function.core.user.entity.User;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 /**
@@ -34,6 +41,9 @@ public class BalanceServiceImpl implements BalanceService {
     @Resource
     private ArticleRepository articleRepository;
 
+    @Resource
+    private ArticleService articleService;
+
     private static final String XIA_ZHUAN_URL = "http://xiazhuan.duoshoutuan.com/shell/android.php";
     private static final String WUDI_ZHUAN_URL = "http://wudizhuan.duoshoutuan.com/shell/android.php";
     private static final String NIUBI_ZHUAN_URL = "http://niubizhuan.duoshoutuan.com/shell/android.php";
@@ -46,7 +56,7 @@ public class BalanceServiceImpl implements BalanceService {
     // 初始化提现参数
     private static final boolean init = false;
     // 日收入限制
-    private static final double xiaZhuanDayMoney = 1.04;
+    private static final double xiaZhuanDayMoney = 1;
     private static final double wudiZhuanDayMoney = 1.08;
     private static final double niubiZhuanDayMoney = 1;
 
@@ -405,5 +415,41 @@ public class BalanceServiceImpl implements BalanceService {
         } catch (IOException e) {
         }
         return records;
+    }
+
+    @Override
+    public String importAccount(User user, Integer type, MultipartFile file) {
+        String msg = "导入内容为空，请检查！";
+        try {
+            InputStream inputStream = file.getInputStream();
+            List<List<String>> lists = ExcelUtils.readExcel(inputStream, 1);
+            if (CollectionUtils.isEmpty(lists)) {
+                return msg;
+            }
+            List<Integer> errors = Lists.newArrayList();
+            for (int i = 0; i < lists.size(); i++) {
+                List<String> list = lists.get(i);
+                String username = list.get(0);
+                String platform = list.get(1);
+                String params = list.get(2);
+                String url = list.get(3);
+                String times = list.get(4);
+                if (StringUtils.isEmpty(username) || StringUtils.isEmpty(platform)
+                        || StringUtils.isEmpty(params) || StringUtils.isEmpty(url)
+                        || StringUtils.isEmpty(times)) {
+                    errors.add(i);
+                    continue;
+                }
+                Article pojo = new Article();
+                articleService.save(user, pojo);
+            }
+            msg = "导入成功！";
+            if (!errors.isEmpty()) {
+                msg += "第" + errors + " 行数据无效，请检查";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return msg;
     }
 }

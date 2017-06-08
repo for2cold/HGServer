@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -85,6 +86,15 @@ public class BalanceController extends BaseFrontController<Balance> {
         ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "获取提现记录成功！");
         List<WuDiZhuanRecordView> records = balanceService.getRecord(id);
         entity.setObj(records);
+        return entity;
+    }
+
+    @RequestMapping(value = "/import", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity importAccount(@CurrentUser User user, Integer type, MultipartFile file) {
+        ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "导入成功！");
+        String msg = balanceService.importAccount(user, type, file);
+        entity.setMsg(msg);
         return entity;
     }
 }
