@@ -158,4 +158,9 @@
         t.id = #{id}
     </select>
 
+    <update id="changeActiveJob">
+        update hg_article t set t.active = 1, t.visit_count = 0
+        where t.hold = 0 and t.type = 1 and t.user_id = 3
+    </update>
+
 </mapper>

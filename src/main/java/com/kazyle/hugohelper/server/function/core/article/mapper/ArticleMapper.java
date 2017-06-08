@@ -92,4 +92,6 @@ public interface ArticleMapper {
     void autoStop(Map<String, Object> context);
 
     void activeArticle(Map<String, Object> context);
+
+    void changeActiveJob();
 }

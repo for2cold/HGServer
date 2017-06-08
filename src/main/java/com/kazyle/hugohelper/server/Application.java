@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.servlet.ServletContext;
@@ -18,6 +19,7 @@ import javax.servlet.ServletException;
  */
 @SpringBootApplication
 @EnableTransactionManagement
+@EnableScheduling
 @EnableConfigurationProperties(SysConfig.class)
 @MapperScan(basePackages = "com.kazyle.hugohelper.server.function.core.*.mapper", annotationClass = MyBatisMapper.class)
 public class Application extends SpringBootServletInitializer {

@@ -119,4 +119,8 @@ public class ArticleRepository {
         context.put("visitCount", 0);
         articleMapper.activeArticle(context);
     }
+
+    public void changeActiveJob() {
+        articleMapper.changeActiveJob();
+    }
 }

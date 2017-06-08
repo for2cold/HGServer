@@ -63,4 +63,9 @@ public interface ArticleService {
     Article findOne(Long id);
 
     void update(Long id, Article pojo);
+
+    /**
+     * 定时重置链接状态任务
+     */
+    void changeActiveJob();
 }

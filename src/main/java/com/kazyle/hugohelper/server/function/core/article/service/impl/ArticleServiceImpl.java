@@ -179,4 +179,9 @@ public class ArticleServiceImpl implements ArticleService {
             balanceService.saveBalance(pojo.getUserId(), pojo.getPlatform(), pojo.getWechat(), pojo.getType(), pojo.getParams());
         }
     }
+
+    @Override
+    public void changeActiveJob() {
+        articleRepository.changeActiveJob();
+    }
 }
