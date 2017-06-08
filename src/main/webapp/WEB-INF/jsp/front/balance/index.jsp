@@ -21,7 +21,7 @@
     <!-- begin #content -->
     <div id="content" class="content">
         <div id="data-loader" class="fade in hide"><span class="spinner" style="top: 40%;z-index:9999"></span></div>
-        <div class="email-btn-row hidden-xs">
+        <div class="email-btn-row">
             <a href="javascript:;" id="btn-remove" class="btn btn-sm btn-danger"><i class="fa m-r-5 fa-trash"></i>删除</a>
             <a href="javascript:;" id="btn-exchange" class="btn btn-sm btn-success"><i class="fa fa-exchange m-r-5"></i> 存档</a>
             <a href="${ctx}/front/article/add?type=${type}" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 添加链接</a>
@@ -44,7 +44,6 @@
                             <label class="control-label">平台：</label>
                             <div class="form-group m-r-4">
                                 <select class="selectpicker" name="platform" id="platform" data-size="10" data-title="" data-style="btn-white" data-width="90px" data-title="">
-                                    <option value=""></option>
                                     <c:if test="${fn:length(platforms) > 0}">
                                         <c:forEach items="${platforms}" var="item">
                                             <option value="${item}"<c:if test="${item eq platform}"> selected="selected"</c:if>>${item}</option>
@@ -129,6 +128,7 @@
             </div>
             <div class="modal-body">
                 <form id="importForm" method="post" class="form-horizontal form-bordered" data-parsley-validate="true" enctype="multipart/form-data">
+                    <input type="hidden" name="type" value="${type}">
                     <div class="form-group">
                         <a href="${ctx}/dl/tpl/import_tpl.xls" target="_blank">下载批量导入账号模板</a>
                     </div>
@@ -167,8 +167,8 @@
         <td class="status"></td>
         <td class="artcleStatus"></td>
         <td>
-            <a href="javascript:void(0);" class="btn btn-sm btn-info btn-update" data-id="">更新链接状态</a>
             <a href="${ctx}/front/balance/{id}/withdraw" target="_blank" class="btn btn-sm btn-primary btn-withdraw">提现</a>
+            <a href="javascript:void(0);" class="btn btn-sm btn-info btn-update" data-id="">更新链接状态</a>
             <a style="display: none;" href="javascript:void(0);" class="btn btn-sm btn-info btn-record" data-id="">提现记录</a>
         </td>
     </tr>
@@ -209,6 +209,7 @@
                 processData:false,
                 contentType:false,
                 success: function(resp) {
+                    $('#import-modal').modal('hide');
                     if (resp.code == 1000) {
                         query();
                     } else {

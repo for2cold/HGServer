@@ -20,7 +20,7 @@
     <!-- begin #content -->
     <div id="content" class="content">
         <div id="data-loader" class="fade in hide"><span class="spinner" style="top: 40%;z-index:9999"></span></div>
-        <div class="email-btn-row hidden-xs">
+        <div class="email-btn-row">
             <c:if test="${empty type}">
                 <a href="${ctx}/front/article/add" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 添加链接</a>
             </c:if>
@@ -47,7 +47,6 @@
                             <label class="control-label">平台：</label>
                             <div class="form-group m-r-4">
                                 <select class="selectpicker" name="platform" id="platform" data-size="10" data-title="" data-style="btn-white" data-width="90px" data-title="">
-                                    <option value=""></option>
                                     <c:if test="${fn:length(platforms) > 0}">
                                         <c:forEach items="${platforms}" var="item">
                                             <option value="${item}"<c:if test="${item eq platform}"> selected="selected"</c:if>>${item}</option>
