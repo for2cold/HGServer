@@ -138,6 +138,9 @@
             var checked = $(this).prop('checked');
             $('input[name="ids"]').prop('checked', checked);
         });
+        $('body').on('click', '.ids', function() {
+            return false;
+        });
         $('body').on('click', 'table tbody > tr', function() {
             var $target = $(this).find('input[type="checkbox"]');
             var checked = $target.attr('checked');

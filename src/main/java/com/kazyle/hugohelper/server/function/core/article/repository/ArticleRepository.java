@@ -123,4 +123,14 @@ public class ArticleRepository {
     public void changeActiveJob() {
         articleMapper.changeActiveJob();
     }
+
+    public void updateLink(Long userId, String platform, Integer type, String username, String url) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", userId);
+        context.put("platform", platform);
+        context.put("type", type);
+        context.put("wechat", username);
+        context.put("url", url);
+        articleMapper.updateLink(context);
+    }
 }

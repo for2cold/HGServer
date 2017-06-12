@@ -2,6 +2,7 @@ package com.kazyle.hugohelper.server.function.core.balance.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
 import com.kazyle.hugohelper.server.config.util.ExcelUtils;
 import com.kazyle.hugohelper.server.config.util.HttpUtils;
 import com.kazyle.hugohelper.server.function.core.article.entity.Article;
@@ -15,6 +16,10 @@ import com.kazyle.hugohelper.server.function.core.user.entity.User;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -48,6 +53,8 @@ public class BalanceServiceImpl implements BalanceService {
     private static final String WUDI_ZHUAN_URL = "http://wudizhuan.duoshoutuan.com/shell/android.php";
     private static final String NIUBI_ZHUAN_URL = "http://niubizhuan.duoshoutuan.com/shell/android.php";
     private static final String KUAI_ZHUAN_FA_URL = "http://rwb.dearclick.com/Api/User/my?sid=";
+
+    private static final String NIUBI_ZHUAN_HOST = "http://niubizhuan.duoshoutuan.com/";
 
     private static final String XIA_ZHUAN_WIDTHDRAW = "&act=url&network=WIFI&signature=82024da003020102020420cabb1d300d&version=2&";
     private static final String WUDI_ZHUAN_WIDTHDRAW = "&act=url&network=WIFI&signature=82024da003020102020411b11dba300d&version=1";
@@ -93,17 +100,15 @@ public class BalanceServiceImpl implements BalanceService {
             Collections.sort(balances, new Comparator<Balance>() {
                 @Override
                 public int compare(Balance o1, Balance o2) {
-                    double m1 = 0.0;
-                    double m2 = 0.0;
+                    Double m1 = 0.0;
+                    Double m2 = 0.0;
                     try {
                         m1 = Double.parseDouble(o1.getAmount());
                         m2 = Double.parseDouble(o2.getAmount());
+                        return m2.compareTo(m1);
                     } catch (NumberFormatException e) {
                     }
-                    if (m1 > m2) {
-                        return -1;
-                    }
-                    return m1 < m2 ? 1 : 0;
+                    return 0;
                 }
             });
         }
@@ -114,9 +119,9 @@ public class BalanceServiceImpl implements BalanceService {
     private void getXiaZhuan(List<Balance> balances) {
         for (Balance balance : balances) {
             String params = balance.getParams();
-            Map<String, String> map = getParamMap(params);
+            Map<String, String> map = HttpUtils.getParamMap(params);
             if (map.isEmpty()) {
-                balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                balance.setAmount("-1");
                 continue;
             }
             if (init) {
@@ -131,7 +136,7 @@ public class BalanceServiceImpl implements BalanceService {
                 String result = HttpUtils.post(XIA_ZHUAN_URL, map);
                 XiaZhuanView view = JSON.parseObject(result, XiaZhuanView.class);
                 if (StringUtils.isEmpty(view.getJifenbao())) {
-                    balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                    balance.setAmount("-1");
                     continue;
                 }
                 balance.setAmount(view.getJifenbao());
@@ -159,7 +164,7 @@ public class BalanceServiceImpl implements BalanceService {
                     balance.setArtcleStatus(2);
                 }
             } catch (IOException e) {
-                balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                balance.setAmount("-1");
                 continue;
             }
         }
@@ -168,9 +173,9 @@ public class BalanceServiceImpl implements BalanceService {
     private void getWuDiZhuan(List<Balance> balances) {
         for (Balance balance : balances) {
             String params = balance.getParams();
-            Map<String, String> map = getParamMap(params);
+            Map<String, String> map = HttpUtils.getParamMap(params);
             if (map.isEmpty()) {
-                balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                balance.setAmount("-1");
                 continue;
             }
             if (init) {
@@ -185,7 +190,7 @@ public class BalanceServiceImpl implements BalanceService {
                 String result = HttpUtils.post(WUDI_ZHUAN_URL, map);
                 WuDiZhuanView view = JSON.parseObject(result, WuDiZhuanView.class);
                 if (StringUtils.isEmpty(view.getJifenbao())) {
-                    balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                    balance.setAmount("-1");
                     continue;
                 }
                 balance.setAmount(view.getJifenbao());
@@ -213,7 +218,7 @@ public class BalanceServiceImpl implements BalanceService {
                     balance.setArtcleStatus(2);
                 }
             } catch (IOException e) {
-                balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                balance.setAmount("-1");
                 continue;
             }
         }
@@ -222,9 +227,9 @@ public class BalanceServiceImpl implements BalanceService {
     private void getNiuBiZhuan(List<Balance> balances) {
         for (Balance balance : balances) {
             String params = balance.getParams();
-            Map<String, String> map = getParamMap(params);
+            Map<String, String> map = HttpUtils.getParamMap(params);
             if (map.isEmpty()) {
-                balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                balance.setAmount("-1");
                 continue;
             }
             if (init) {
@@ -239,7 +244,7 @@ public class BalanceServiceImpl implements BalanceService {
                 String result = HttpUtils.post(NIUBI_ZHUAN_URL, map);
                 NiuBiZhuanView view = JSON.parseObject(result, NiuBiZhuanView.class);
                 if (StringUtils.isEmpty(view.getJifenbao())) {
-                    balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                    balance.setAmount("-1");
                     continue;
                 }
                 balance.setAmount(view.getJifenbao());
@@ -267,7 +272,7 @@ public class BalanceServiceImpl implements BalanceService {
                     balance.setArtcleStatus(2);
                 }
             } catch (IOException e) {
-                balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                balance.setAmount("-1");
                 continue;
             }
         }
@@ -277,7 +282,7 @@ public class BalanceServiceImpl implements BalanceService {
         for (Balance balance : balances) {
             String params = balance.getParams();
             if (StringUtils.isEmpty(params)) {
-                balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                balance.setAmount("-1");
                 continue;
             }
             try {
@@ -286,31 +291,16 @@ public class BalanceServiceImpl implements BalanceService {
                 JSONObject obj = (JSONObject) map.get("message");
                 KuaiZhuanFaView view = JSON.parseObject(obj.toJSONString(), KuaiZhuanFaView.class);
                 if (null == view) {
-                    balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                    balance.setAmount("-1");
                     continue;
                 }
                 balance.setAmount(view.getCashes());
                 balance.setToday(view.getDay_cashes());
             } catch (IOException e) {
-                balance.setAmount("<span class=\"text-danger\">查询失败</span>");
+                balance.setAmount("-1");
                 continue;
             }
         }
-    }
-
-    public static Map<String, String> getParamMap(String param) {
-        Map<String, String> map = new HashMap<>();
-        if (org.apache.commons.lang3.StringUtils.isBlank(param)) {
-            return map;
-        }
-        String[] params = param.split("&");
-        for (int i = 0; i < params.length; i++) {
-            String[] p = params[i].split("=");
-            if (p.length == 2) {
-                map.put(p[0], p[1]);
-            }
-        }
-        return map;
     }
 
     @Override
@@ -351,7 +341,7 @@ public class BalanceServiceImpl implements BalanceService {
             pojo.setUsername(username);
             // 获取提现参数
             if ("瞎转".equals(platform)) {
-                Map<String, String> map = getParamMap(params);
+                Map<String, String> map = HttpUtils.getParamMap(params);
                 String uid = map.get("uid");
                 String qqKey = map.get("qqkey");
                 String uname = map.get("username");
@@ -359,7 +349,7 @@ public class BalanceServiceImpl implements BalanceService {
                 String widthdraw = "uid=" + uid + "&qqkey=" + qqKey + "&username=" + uname + "&device=" + device + XIA_ZHUAN_WIDTHDRAW;
                 pojo.setWithdraw(widthdraw);
             } else if ("无敌赚".equals(platform)) {
-                Map<String, String> map = getParamMap(params);
+                Map<String, String> map = HttpUtils.getParamMap(params);
                 String uid = map.get("uid");
                 String qqKey = map.get("qqkey");
                 String uname = map.get("username");
@@ -367,7 +357,7 @@ public class BalanceServiceImpl implements BalanceService {
                 String widthdraw = "uid=" + uid + "&qqkey=" + qqKey + "&username=" + uname + "&device=" + device + WUDI_ZHUAN_WIDTHDRAW;
                 pojo.setWithdraw(widthdraw);
             } else if ("牛逼赚".equals(platform)) {
-                Map<String, String> map = getParamMap(params);
+                Map<String, String> map = HttpUtils.getParamMap(params);
                 String uid = map.get("uid");
                 String qqKey = map.get("qqkey");
                 String uname = map.get("username");
@@ -382,7 +372,7 @@ public class BalanceServiceImpl implements BalanceService {
     @Override
     public String getWithdrawUrl(Long id) throws IOException {
         Balance pojo = balanceRepository.findOne(id);
-        Map<String, String> map = getParamMap(pojo.getWithdraw());
+        Map<String, String> map = HttpUtils.getParamMap(pojo.getWithdraw());
         if (pojo.getPlatform().equals("瞎转")) {
             return HttpUtils.postUserAgent(XIA_ZHUAN_URL, map);
         }
@@ -398,7 +388,7 @@ public class BalanceServiceImpl implements BalanceService {
     @Override
     public List<WuDiZhuanRecordView> getRecord(Long id) {
         Balance pojo = balanceRepository.findOne(id);
-        Map<String, String> map = getParamMap(pojo.getParams());
+        Map<String, String> map = HttpUtils.getParamMap(pojo.getParams());
         map.put("pagesize", "10");
         map.put("page", "1");
         map.put("op", "tixian");
@@ -422,6 +412,25 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
+    public void updateLink(Long[] ids) throws IOException {
+        if (ids != null && ids.length > 0) {
+            List<Balance> balances = balanceRepository.findByIds(ids);
+            for (Balance pojo : balances) {
+                String url = null;
+                if ("瞎转".equals(pojo.getPlatform())) {
+                    url = getXiaZhuanUrl(pojo.getParams());
+                } else if ("无敌赚".equals(pojo.getPlatform())) {
+                    url = getWudiZhuanUrl(pojo.getParams());
+                } else if ("牛逼赚".equals(pojo.getPlatform())) {
+                    url = getNiubiZhuanUrl(pojo.getParams());
+                }
+                // 更新文章状态
+                articleRepository.updateLink(pojo.getUserId(), pojo.getPlatform(), pojo.getType(), pojo.getUsername(), url);
+            }
+        }
+    }
+
+    @Override
     public String importAccount(User user, Integer type, MultipartFile file) {
         String msg = "导入内容为空，请检查！";
         try {
@@ -438,9 +447,7 @@ public class BalanceServiceImpl implements BalanceService {
                 String params = list.get(2);
                 String times = list.get(3);
                 String url = list.get(4);
-                if (StringUtils.isEmpty(username) || StringUtils.isEmpty(platform)
-                        || StringUtils.isEmpty(params) || StringUtils.isEmpty(url)
-                        || StringUtils.isEmpty(times)) {
+                if (StringUtils.isEmpty(username) || StringUtils.isEmpty(platform) || StringUtils.isEmpty(params)) {
                     errors.add(i);
                     continue;
                 }
@@ -452,11 +459,22 @@ public class BalanceServiceImpl implements BalanceService {
                 }
                 Article pojo = new Article();
                 pojo.setPlatform(platform);
-                pojo.setUrl(url);
                 pojo.setWechat(username);
                 pojo.setParams(params);
                 pojo.setTimes(time);
                 pojo.setType(type);
+
+                if (StringUtils.isEmpty(url)) {
+                    if ("瞎转".equals(platform)) {
+                        url = getXiaZhuanUrl(params);
+                    } else if ("无敌赚".equals(platform)) {
+                        url = getWudiZhuanUrl(params);
+                    } else if ("牛逼赚".equals(platform)) {
+                        url = getNiubiZhuanUrl(params);
+                    }
+                }
+                pojo.setUrl(url);
+
                 articleService.save(user, pojo);
             }
             msg = "导入成功！";
@@ -467,5 +485,84 @@ public class BalanceServiceImpl implements BalanceService {
             e.printStackTrace();
         }
         return msg;
+    }
+
+    // 获取瞎转分享链接
+    public static String getXiaZhuanUrl(String params) throws IOException {
+        Map<String, String> map = HttpUtils.getParamMap(params);
+        Map<String, String> paramMap = Maps.newHashMap();
+        paramMap.put("cate_id", "1");
+        paramMap.put("act", "zhuanfa");
+        paramMap.put("pagesize", "10");
+        paramMap.put("page", "1");
+        paramMap.put("uid", map.get("uid"));
+        paramMap.put("qqkey", map.get("qqkey"));
+        paramMap.put("username", map.get("username"));
+        paramMap.put("device", map.get("device"));
+        paramMap.put("network", map.get("network"));
+        paramMap.put("signature", map.get("signature"));
+        paramMap.put("version", map.get("version"));
+        String result = HttpUtils.postUserAgent(XIA_ZHUAN_URL, paramMap);
+        List<XiaZhuanUrl> urls = JSON.parseArray(result, XiaZhuanUrl.class);
+        Random random = new Random();
+        int index = random.nextInt(urls.size());
+        String url = urls.get(index).getDetail_url();
+        return getUrl(url);
+    }
+
+    // 获取无敌赚分享链接
+    public static String getWudiZhuanUrl(String params) throws IOException {
+        Map<String, String> map = HttpUtils.getParamMap(params);
+        Map<String, String> paramMap = Maps.newHashMap();
+        paramMap.put("cate_id", "105");
+        paramMap.put("act", "zhuanfa");
+        paramMap.put("pagesize", "10");
+        paramMap.put("page", "1");
+        paramMap.put("uid", map.get("uid"));
+        paramMap.put("qqkey", map.get("qqkey"));
+        paramMap.put("username", map.get("username"));
+        paramMap.put("device", map.get("device"));
+        paramMap.put("network", map.get("network"));
+        paramMap.put("signature", map.get("signature"));
+        paramMap.put("version", map.get("version"));
+//        params = "uid=23907&pagesize=10&qqkey=owxDu0c6ut8_SokxesGPBEGyxbO0&username=xhdjdn&page=1&device=864502025537853&cate_id=105&act=zhuanfa&network=WIFI&signature=82024da003020102020411b11dba300d&version=1&";
+        String result = HttpUtils.postUserAgent(WUDI_ZHUAN_URL, paramMap);
+        List<XiaZhuanUrl> urls = JSON.parseArray(result, XiaZhuanUrl.class);
+        Random random = new Random();
+        int index = random.nextInt(urls.size());
+        String url = urls.get(index).getDetail_url();
+        return getUrl(url);
+    }
+
+    // 获取牛逼赚分享链接
+    public static String getNiubiZhuanUrl(String params) throws IOException {
+        Map<String, String> map = HttpUtils.getParamMap(params);
+        String requestUrl = NIUBI_ZHUAN_HOST + "?m=zhuanfa&a=ajax&uid=" + map.get("uid") + "&op=all&cate=%E6%83%85%E6%84%9F";
+        String html = HttpUtils.get(requestUrl, "");
+        Document doc = Jsoup.parse(html);
+        Elements es = doc.getElementsByClass("cursor");
+        Random random = new Random();
+        int index = random.nextInt(es.size());
+        Element e = es.get(index);
+        String onclick = e.attr("onclick");
+        String url = onclick.substring(onclick.indexOf("?"), onclick.length() - 1);
+        return getUrl(NIUBI_ZHUAN_HOST + url);
+    }
+
+    public static String getUrl(String requestUrl) throws IOException {
+        String target = null;
+        Document doc = Jsoup.connect(requestUrl).timeout(10000).get();
+        Elements es = doc.getElementsByTag("script");
+        for (Element e : es) {
+            String[] data = e.data().toString().trim().split("var");
+            for(String variable : data){
+                variable = variable.trim();
+                if(variable.startsWith("url=")){
+                    target = variable.substring(6, variable.length() - 2);
+                    break;
+                }
+            }
+        }
+        return target;
     }
 }

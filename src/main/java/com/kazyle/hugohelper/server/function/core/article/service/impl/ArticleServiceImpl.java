@@ -111,10 +111,12 @@ public class ArticleServiceImpl implements ArticleService {
             type = 0;
         }
         List<String> platforms = Lists.newArrayList();
-        if ("瞎转".equals(platform) || "无敌赚".equals(platform) || "牛逼赚".equals(platform)) {
+        if ("瞎转".equals(platform) || "无敌赚".equals(platform) || "牛逼赚".equals(platform) || "快转发".equals(platform) || "转乐".equals(platform)) {
             platforms.add("瞎转");
             platforms.add("无敌赚");
             platforms.add("牛逼赚");
+            platforms.add("转乐");
+            platforms.add("快转发");
         } else {
             platforms.add(platform);
         }

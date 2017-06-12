@@ -26,6 +26,7 @@
             <a href="javascript:;" id="btn-exchange" class="btn btn-sm btn-success"><i class="fa fa-exchange m-r-5"></i> 存档</a>
             <a href="${ctx}/front/article/add?type=${type}" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 添加链接</a>
             <a href="javascript:;" id="btn-import" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 批量导入账号</a>
+            <a href="javascript:;" id="btn-refresh" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 批量更新链接</a>
             <a href="javascript:;" id="btn-query" class="btn btn-sm btn-success"><i class="fa fa-refresh m-r-5"></i> 刷新</a>
         </div>
         <!-- begin row -->
@@ -201,6 +202,11 @@
             $('#import-modal').modal();
         });
         $('#btnImport').click(function() {
+            var $btn = $(this);
+            if ($btn.attr('disabled')) {
+                return false;
+            }
+            $btn.attr('disabled', true).text('处理中，请稍后');
             var form = new FormData($('#importForm')[0]);
             $.ajax({
                 url: '${ctx}/front/balance/import',
@@ -209,6 +215,7 @@
                 processData:false,
                 contentType:false,
                 success: function(resp) {
+                    $btn.attr('disabled', false).text('确定');
                     $('#import-modal').modal('hide');
                     if (resp.code == 1000) {
                         query();
@@ -221,6 +228,9 @@
         $('#ids').click(function() {
             var checked = $(this).prop('checked');
             $('input[name="ids"]').prop('checked', checked);
+        });
+        $('body').on('click', '.ids', function() {
+            return false;
         });
         $('body').on('click', 'table tbody > tr', function() {
             var $target = $(this).find('input[type="checkbox"]');
@@ -275,33 +285,35 @@
                 alert('请先勾选要删除的数据');
                 return false;
             }
-            var url = '${ctx}/front/balance/remove?' + ids;
-            $.post(url).done(function(resp) {
-                if (resp.code == 1000) {
-                    $.gritter.add({
-                        title: '成功提示~',
-                        text: resp.msg,
-                        class_name: 'gritter-light',
-                        time: 2000,
-                        after_close: function() {
-                            query();
-                        }
-                    });
-                } else {
+            if (confirm("您确定要删除已选择的数据？删除后不可恢复！")) {
+                var url = '${ctx}/front/balance/remove?' + ids;
+                $.post(url).done(function(resp) {
+                    if (resp.code == 1000) {
+                        $.gritter.add({
+                            title: '成功提示~',
+                            text: resp.msg,
+                            class_name: 'gritter-light',
+                            time: 2000,
+                            after_close: function() {
+                                query();
+                            }
+                        });
+                    } else {
+                        $.gritter.add({
+                            title: '删除失败',
+                            text: resp.msg,
+                            time: 2000
+                        });
+                    }
+                }).fail(function(){
+                    $('#remove-modal').modal('hide');
                     $.gritter.add({
                         title: '删除失败',
-                        text: resp.msg,
+                        text: '系统繁忙，请稍后再试吧~~',
                         time: 2000
                     });
-                }
-            }).fail(function(){
-                $('#remove-modal').modal('hide');
-                $.gritter.add({
-                    title: '删除失败',
-                    text: '系统繁忙，请稍后再试吧~~',
-                    time: 2000
                 });
-            });
+            }
         });
         // 存档
         $('#btn-exchange').click(function() {
@@ -333,6 +345,41 @@
                 $('#remove-modal').modal('hide');
                 $.gritter.add({
                     title: '存档更新失败',
+                    text: '系统繁忙，请稍后再试吧~~',
+                    time: 2000
+                });
+            });
+        });
+        // 批量更新链接
+        $('#btn-refresh').click(function() {
+            var ids = $('input[name="ids"]:checked').serialize();
+            if (!ids || ids.length == 0) {
+                alert('请先勾选要更新链接的数据');
+                return false;
+            }
+            var url = '${ctx}/front/balance/update/link?' + ids;
+            $.post(url).done(function(resp) {
+                if (resp.code == 1000) {
+                    $.gritter.add({
+                        title: '成功提示~',
+                        text: resp.msg,
+                        class_name: 'gritter-light',
+                        time: 2000,
+                        after_close: function() {
+                            query();
+                        }
+                    });
+                } else {
+                    $.gritter.add({
+                        title: '链接更新失败',
+                        text: resp.msg,
+                        time: 2000
+                    });
+                }
+            }).fail(function(){
+                $('#remove-modal').modal('hide');
+                $.gritter.add({
+                    title: '链接更新失败',
                     text: '系统繁忙，请稍后再试吧~~',
                     time: 2000
                 });
@@ -378,6 +425,8 @@
                                 amount = '<span class="text-primary">' + amount + '</span>';
                             } else if (amount < 10 && amount >= 5) {
                                 amount = '<span class="text-info">' + amount + '</span>';
+                            } else if (amount == -1) {
+                                amount = '<span class="text-danger">查询失败</span>';
                             }
                         }
                     }catch(e) {}

@@ -94,4 +94,6 @@ public interface ArticleMapper {
     void activeArticle(Map<String, Object> context);
 
     void changeActiveJob();
+
+    void updateLink(Map<String, Object> context);
 }

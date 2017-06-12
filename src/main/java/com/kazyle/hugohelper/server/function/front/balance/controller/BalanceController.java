@@ -105,4 +105,12 @@ public class BalanceController extends BaseFrontController<Balance> {
         entity.setMsg(msg);
         return entity;
     }
+
+    @RequestMapping(value = "/update/link", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity updateLink(Long[] ids) throws IOException {
+        ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "链接更新成功！");
+        balanceService.updateLink(ids);
+        return entity;
+    }
 }

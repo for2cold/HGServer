@@ -35,4 +35,6 @@ public interface BalanceService {
     String importAccount(User user, Integer type, MultipartFile file);
 
     void updateArticle(Long id);
+
+    void updateLink(Long[] ids) throws IOException;
 }

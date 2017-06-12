@@ -15,6 +15,7 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -149,5 +150,20 @@ public class HttpUtils {
         //释放链接
         response.close();
         return body;
+    }
+
+    public static Map<String, String> getParamMap(String param) {
+        Map<String, String> map = new HashMap<>();
+        if (org.apache.commons.lang3.StringUtils.isBlank(param)) {
+            return map;
+        }
+        String[] params = param.split("&");
+        for (int i = 0; i < params.length; i++) {
+            String[] p = params[i].split("=");
+            if (p.length == 2) {
+                map.put(p[0], p[1]);
+            }
+        }
+        return map;
     }
 }

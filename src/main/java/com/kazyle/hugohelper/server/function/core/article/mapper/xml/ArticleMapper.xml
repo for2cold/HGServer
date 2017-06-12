@@ -149,6 +149,12 @@
           t.user_id = #{userId} and t.platform = #{platform} and t.type = #{type} and t.wechat = #{wechat}
     </update>
 
+    <update id="updateLink" parameterType="map">
+        update hg_article t set t.url = #{url}, t.visit_count = 0
+        where
+          t.user_id = #{userId} and t.platform = #{platform} and t.type = #{type} and t.wechat = #{wechat}
+    </update>
+
     <select id="findOne" parameterType="long" resultMap="ArticleResultMap">
         select
         <include refid="select_fields" />
@@ -160,7 +166,7 @@
 
     <update id="changeActiveJob">
         update hg_article t set t.active = 1, t.visit_count = 0
-        where t.hold = 0 and t.type = 1 and t.user_id = 3
+        where t.hold = 0 and t.user_id = 3 and t.platform in ('瞎转', '无敌赚', '牛逼赚')
     </update>
 
 </mapper>
