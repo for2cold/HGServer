@@ -152,6 +152,29 @@ public class HttpUtils {
         return body;
     }
 
+    public static String getUserAgent(String url, String params) throws IOException {
+        String body = "";
+        //创建httpclient对象
+        CloseableHttpClient client = HttpClients.createDefault();
+        if (StringUtils.isNotEmpty(params)) {
+            url += params;
+        }
+        HttpGet httpGet = new HttpGet(url);
+        //执行请求操作，并拿到结果（同步阻塞）
+        httpGet.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 4.4.2; 2013023 Build/HM2013023) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36");
+        CloseableHttpResponse response = client.execute(httpGet);
+        //获取结果实体
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            //按指定编码转换结果实体为String类型
+            body = EntityUtils.toString(entity, "utf-8");
+        }
+        EntityUtils.consume(entity);
+        //释放链接
+        response.close();
+        return body;
+    }
+
     public static Map<String, String> getParamMap(String param) {
         Map<String, String> map = new HashMap<>();
         if (org.apache.commons.lang3.StringUtils.isBlank(param)) {

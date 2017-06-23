@@ -92,6 +92,16 @@
         where t.platform = #{platform} and t.user_id = #{userId} and t.wechat = #{wechat} and t.type = #{type}
     </update>
 
+    <delete id="remove" parameterType="map">
+        delete from hg_article
+        where platform = #{platform} and user_id = #{userId} and wechat = #{wechat} and type = #{type}
+    </delete>
+
+    <update id="autoActive" parameterType="map">
+        update hg_article t set t.active = 1, t.visit_count = 0
+        where t.platform = #{platform} and t.user_id = #{userId} and t.wechat = #{wechat} and t.type = #{type} and t.hold = 0
+    </update>
+
     <delete id="delete" parameterType="java.util.List">
         delete from hg_article where id in
         <foreach item="id" collection="list" open="(" separator="," close=")">
@@ -154,6 +164,12 @@
         where
           t.user_id = #{userId} and t.platform = #{platform} and t.type = #{type} and t.wechat = #{wechat}
     </update>
+
+    <select id="countOne" parameterType="map" resultType="long">
+        select count(t.id) from hg_article t
+        where
+          t.user_id = #{userId} and t.platform = #{platform} and t.type = #{type} and t.wechat = #{wechat}
+    </select>
 
     <select id="findOne" parameterType="long" resultMap="ArticleResultMap">
         select

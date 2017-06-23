@@ -96,4 +96,10 @@ public interface ArticleMapper {
     void changeActiveJob();
 
     void updateLink(Map<String, Object> context);
+
+    void autoActive(Map<String, Object> context);
+
+    void remove(Map<String, Object> context);
+
+    long countOne(Map<String, Object> context);
 }

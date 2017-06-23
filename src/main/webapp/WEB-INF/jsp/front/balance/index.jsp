@@ -24,10 +24,11 @@
         <div class="email-btn-row">
             <a href="javascript:;" id="btn-remove" class="btn btn-sm btn-danger"><i class="fa m-r-5 fa-trash"></i>删除</a>
             <a href="javascript:;" id="btn-exchange" class="btn btn-sm btn-success"><i class="fa fa-exchange m-r-5"></i> 存档</a>
-            <a href="${ctx}/front/article/add?type=${type}" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 添加链接</a>
             <a href="javascript:;" id="btn-import" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 批量导入账号</a>
             <a href="javascript:;" id="btn-refresh" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 批量更新链接</a>
-            <a href="javascript:;" id="btn-query" class="btn btn-sm btn-success"><i class="fa fa-refresh m-r-5"></i> 刷新</a>
+            <a href="javascript:;" id="btn-update" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 批量更新状态</a>
+            <a href="javascript:;" id="btn-search" class="btn btn-sm btn-primary"><i class="fa fa-search m-r-5"></i> 筛选</a>
+            <a href="javascript:;" id="btn-query" class="btn btn-sm btn-info"><i class="fa fa-refresh m-r-5"></i> 刷新</a>
         </div>
         <!-- begin row -->
         <div class="row">
@@ -38,7 +39,7 @@
                         <div class="panel-heading-btn">
                             <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                         </div>
-                        <h4 class="panel-title">余额查询</h4>
+                        <h2 class="panel-title">余额查询 <span id="refreshDate"></span></h2>
                     </div>
                     <div class="panel-body">
                         <form class="form-inline" id="searchForm" action="" method="POST">
@@ -56,6 +57,7 @@
                             <div class="form-group m-r-4">
                                 <input type="text" class="form-control" id="period" name="periodDate" value="" />
                             </div>
+                            <label class="control-label">今日总收入：<span id="todayIncome" class="text-success">0.00</span></label>
                         </form>
                         <table class="table table-hover">
                             <thead>
@@ -91,7 +93,7 @@
 </div>
 </body>
 <div class="modal fade" id="record-modal">
-    <div class="modal-dialog">
+    <div class="modal-dialog" style="width: 800px">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -150,7 +152,7 @@
 </div>
 <hg:PageFooter />
 <script type="text/html" id="notDataTpl">
-<tr><td class="text-center" colspan="9">暂无数据</td></tr>
+    <tr><td class="text-center" colspan="9">暂无数据</td></tr>
 </script>
 <script type="text/html" id="loadDataTpl">
     <tr><td class="text-center" colspan="9">查询中，请稍后</td></tr>
@@ -180,6 +182,9 @@
 <script>
     var loadData = $('#loadDataTpl').html();
     var notData = $('#notDataTpl').html();
+    var datas;
+    var platform;
+    var todayIncome;
     $(document).ready(function() {
         App.init();
         $('#period').datetimepicker({
@@ -187,7 +192,7 @@
             minView: 2,
             startView: 2,
             autoclose: true,
-            startDate: new Date()
+            endDate: new Date()
         });
         $('#platform').find('option[value="瞎转"]').attr('selected', true);
         query();
@@ -261,6 +266,40 @@
                         $('#record-modal table tbody').html('<tr><td class="text-center" colspan="5">暂无记录</td></tr>');
                     }
                 }
+            });
+        });
+        $('#btn-update').click(function() {
+            var ids = $('input[name="ids"]:checked').serialize();
+            if (!ids || ids.length == 0) {
+                alert('请先勾选要删除的数据');
+                return false;
+            }
+            var url = '${ctx}/front/balance/updateStatus?ids=' + ids;
+            $.post(url).done(function(resp) {
+                if (resp.code == 1000) {
+                    $.gritter.add({
+                        title: '成功提示~',
+                        text: resp.msg,
+                        class_name: 'gritter-light',
+                        time: 2000,
+                        after_close: function() {
+                            query();
+                        }
+                    });
+                } else {
+                    $.gritter.add({
+                        title: '删除失败',
+                        text: resp.msg,
+                        time: 2000
+                    });
+                }
+            }).fail(function(){
+                $('#remove-modal').modal('hide');
+                $.gritter.add({
+                    title: '删除失败',
+                    text: '系统繁忙，请稍后再试吧~~',
+                    time: 2000
+                });
             });
         });
         $('body').on('click', '.btn-update', function() {
@@ -385,85 +424,113 @@
                 });
             });
         });
+        // 筛选没跑满的数据
+        $('#btn-search').click(function() {
+            if (datas) {
+                var results = [];
+                for (var i = 0; i < datas.length; i++) {
+                    var data = datas[i];
+                    var today = parseFloat(data.today);
+                    if (today < 1 && !data.date && data.artcleStatus == 0) {
+                        results.push(data);
+                    }
+                }
+                callback(results);
+            }
+        });
     });
 
     function query() {
         $('#balanceTable').html(loadData);
 
         // 获取所有账号余额
-        var platform = $('#platform').val() || '瞎转';
+        var _platform = $('#platform').val() || '瞎转';
         var type = '${type}';
         var date = $('#period').val();
 
         $.get('${ctx}/front/balance/list', {
-            'platform': platform,
+            'platform': _platform,
             'type': type,
             'date': date
         }).done(function(resp) {
+            var date = new Date();
+            date.setTime(resp.time);
+            $('#refreshDate').text(date.toLocaleString());
             if (resp.code == 1000) {
-                $('#balanceTable').html('');
-                var balances = resp.data;
-                if (balances.length == 0) {
-                    $('#balanceTable').html(notData);
-                }
-                for (var i = 0; i < balances.length; i++) {
-                    var balance = balances[i];
-                    var row = $('#rowTpl').html();
-                    var $row = $(row);
-                    $row.find('.ids').val(balance.id);
-                    $row.find('.index').text(i + 1);
-                    $row.find('.username').text(balance.username);
-                    var amount = balance.amount;
-                    try {
-                        amount = parseFloat(amount);
-                        if (isNaN(amount)) {
-                            amount = balance.amount;
-                        } else {
-                            if (amount >= 20) {
-                                amount = '<span class="text-success">' + amount + '</span>';
-                            } else if (amount < 20 && amount >= 10) {
-                                amount = '<span class="text-primary">' + amount + '</span>';
-                            } else if (amount < 10 && amount >= 5) {
-                                amount = '<span class="text-info">' + amount + '</span>';
-                            } else if (amount == -1) {
-                                amount = '<span class="text-danger">查询失败</span>';
-                            }
-                        }
-                    }catch(e) {}
-                    $row.find('.amount').html(amount);
-                    $row.find('.today').html(balance.today);
-                    $row.find('.date').html(balance.date);
-                    if (balance.block) {
-                        $row.find('.status').html('<span class="label label-danger">' + balance.block + '</span>');
-                    } else {
-                        $row.find('.status').html('<span class="label label-success">正常</span>');
-                    }
-                    var href = $row.find('.btn-withdraw').attr('href');
-                    href = href.replace(/{id}/, balance.id);
-                    $row.find('.btn-withdraw').attr('href', href);
-                    $row.find('.btn-record').attr('data-id', balance.id);
-                    $row.find('.btn-update').attr('data-id', balance.id);
-                    if (platform == '无敌赚') {
-                        $row.find('.btn-record').show();
-                    } else {
-                        $row.find('.btn-record').hide();
-                    }
-                    var artcleStatus = balance.artcleStatus;
-                    if (artcleStatus == 0) {
-                        $row.find('.artcleStatus').html('<span class="label label-danger">已暂停</span>');
-                    } else if (artcleStatus == 1) {
-                        $row.find('.artcleStatus').html('<span class="label label-success">运行中</span>');
-                    } else {
-                        $row.find('.artcleStatus').html('<span class="label label-warning">无链接</span>');
-                    }
-                    $row.find('.artcleStatus').attr('data-status', artcleStatus)
-                    $('#balanceTable').append($row);
-                }
+                datas = resp.data;
+                platform = _platform;
+                callback(resp.data, platform);
             } else {
                 alert(resp.msg);
             }
         });
     }
 
+    function callback(datas, platform) {
+        $('#balanceTable').html('');
+        var balances = datas;
+        if (balances.length == 0) {
+            $('#balanceTable').html(notData);
+        }
+        todayIncome = 0;
+        for (var i = 0; i < balances.length; i++) {
+            var balance = balances[i];
+            var row = $('#rowTpl').html();
+            var $row = $(row);
+            $row.find('.ids').val(balance.id);
+            $row.find('.index').text(i + 1);
+            $row.find('.username').text(balance.username);
+            var amount = balance.amount;
+            try {
+                amount = parseFloat(amount);
+                if (isNaN(amount)) {
+                    amount = balance.amount;
+                } else {
+                    if (amount >= 20) {
+                        amount = '<span class="text-success">' + amount + '</span>';
+                    } else if (amount < 20 && amount >= 10) {
+                        amount = '<span class="text-primary">' + amount + '</span>';
+                    } else if (amount < 10 && amount >= 5) {
+                        amount = '<span class="text-info">' + amount + '</span>';
+                    } else if (amount == -1) {
+                        amount = '<span class="text-danger">查询失败</span>';
+                    }
+                }
+            }catch(e) {}
+            today = parseFloat(balance.today);
+            todayIncome += today;
+            $row.find('.amount').html(amount);
+            $row.find('.today').html(balance.today);
+            $row.find('.date').html(balance.date);
+            if (balance.block) {
+                $row.find('.status').html('<span class="label label-danger">' + balance.block + '</span>');
+            } else {
+                $row.find('.status').html('<span class="label label-success">正常</span>');
+            }
+            var href = $row.find('.btn-withdraw').attr('href');
+            href = href.replace(/{id}/, balance.id);
+            $row.find('.btn-withdraw').attr('href', href);
+            $row.find('.btn-record').attr('data-id', balance.id);
+            $row.find('.btn-update').attr('data-id', balance.id);
+            if (platform == '无敌赚') {
+                $row.find('.btn-record').show();
+            } else {
+                $row.find('.btn-record').hide();
+            }
+            var artcleStatus = balance.artcleStatus;
+            if (artcleStatus == 0) {
+                $row.find('.artcleStatus').html('<span class="label label-danger">已暂停</span>');
+            } else if (artcleStatus == 1) {
+                $row.find('.artcleStatus').html('<span class="label label-success">运行中</span>');
+            } else {
+                $row.find('.artcleStatus').html('<span class="label label-warning">无链接</span>');
+            }
+            $row.find('.artcleStatus').attr('data-status', artcleStatus)
+            $('#balanceTable').append($row);
+        }
+        if (platform) {
+            $('#todayIncome').text(todayIncome.toFixed(2));
+        }
+    }
 </script>
 </html>

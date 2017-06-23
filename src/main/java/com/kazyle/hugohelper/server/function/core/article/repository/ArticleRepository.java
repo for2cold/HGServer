@@ -133,4 +133,31 @@ public class ArticleRepository {
         context.put("url", url);
         articleMapper.updateLink(context);
     }
+
+    public void autoActive(String platform, String username, Integer type, Long userId) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", userId);
+        context.put("platform", platform);
+        context.put("type", type);
+        context.put("wechat", username);
+        articleMapper.autoActive(context);
+    }
+
+    public void delete(String platform, Integer type, Long userId, String username) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", userId);
+        context.put("platform", platform);
+        context.put("type", type);
+        context.put("wechat", username);
+        articleMapper.remove(context);
+    }
+
+    public long countOne(Long userId, String platform, Integer type, String username) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("userId", userId);
+        context.put("platform", platform);
+        context.put("type", type);
+        context.put("wechat", username);
+        return articleMapper.countOne(context);
+    }
 }

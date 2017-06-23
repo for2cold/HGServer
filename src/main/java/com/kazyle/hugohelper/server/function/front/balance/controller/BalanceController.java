@@ -97,6 +97,16 @@ public class BalanceController extends BaseFrontController<Balance> {
         return entity;
     }
 
+    @RequestMapping(value = "/updateStatus", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity updateArticles(Long[] ids) {
+        ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "操作成功！");
+        for (Long id : ids) {
+            balanceService.updateArticle(id);
+        }
+        return entity;
+    }
+
     @RequestMapping(value = "/import", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity importAccount(@CurrentUser User user, Integer type, MultipartFile file) {

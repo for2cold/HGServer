@@ -144,14 +144,6 @@ public class BalanceServiceImpl implements BalanceService {
                 if (!view.getIs_block().equals("0")) {
                     balance.setBlock(view.getBlock_remark());
                 }
-                try {
-                    // 超过指定金额，自动停止链接
-                    double day_jifenbao = Double.parseDouble(balance.getToday());
-                    if (day_jifenbao >= xiaZhuanDayMoney) {
-                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
-                    }
-                } catch (NumberFormatException e) {
-                }
                 // 处理链接账号
                 String articleActive = balance.getArticleActive();
                 if (StringUtils.isNotEmpty(articleActive)) {
@@ -162,6 +154,14 @@ public class BalanceServiceImpl implements BalanceService {
                     }
                 } else {
                     balance.setArtcleStatus(2);
+                }
+                try {
+                    // 超过指定金额，自动停止链接
+                    double day_jifenbao = Double.parseDouble(balance.getToday());
+                    if (day_jifenbao >= xiaZhuanDayMoney) {
+                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
+                    }
+                } catch (NumberFormatException e) {
                 }
             } catch (IOException e) {
                 balance.setAmount("-1");
@@ -198,14 +198,6 @@ public class BalanceServiceImpl implements BalanceService {
                 if (!view.getIs_block().equals("0")) {
                     balance.setBlock(view.getBlock_remark());
                 }
-                try {
-                    // 超过指定金额，自动停止链接
-                    double day_jifenbao = Double.parseDouble(balance.getToday());
-                    if (day_jifenbao >= wudiZhuanDayMoney) {
-                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
-                    }
-                } catch (NumberFormatException e) {
-                }
                 // 处理链接账号
                 String articleActive = balance.getArticleActive();
                 if (StringUtils.isNotEmpty(articleActive)) {
@@ -216,6 +208,14 @@ public class BalanceServiceImpl implements BalanceService {
                     }
                 } else {
                     balance.setArtcleStatus(2);
+                }
+                try {
+                    // 超过指定金额，自动停止链接
+                    double day_jifenbao = Double.parseDouble(balance.getToday());
+                    if (day_jifenbao >= wudiZhuanDayMoney ) {
+                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
+                    }
+                } catch (NumberFormatException e) {
                 }
             } catch (IOException e) {
                 balance.setAmount("-1");
@@ -252,14 +252,6 @@ public class BalanceServiceImpl implements BalanceService {
                 if (!view.getIs_block().equals("0")) {
                     balance.setBlock(view.getBlock_remark());
                 }
-                try {
-                    // 超过指定金额，自动停止链接
-                    double day_jifenbao = Double.parseDouble(balance.getToday());
-                    if (day_jifenbao >= niubiZhuanDayMoney) {
-                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
-                    }
-                } catch (NumberFormatException e) {
-                }
                 // 处理链接账号
                 String articleActive = balance.getArticleActive();
                 if (StringUtils.isNotEmpty(articleActive)) {
@@ -267,9 +259,17 @@ public class BalanceServiceImpl implements BalanceService {
                         balance.setArtcleStatus(1);
                     } else {
                         balance.setArtcleStatus(0);
-                }
+                    }
                 } else {
                     balance.setArtcleStatus(2);
+                }
+                try {
+                    // 超过指定金额，自动停止链接
+                    double day_jifenbao = Double.parseDouble(balance.getToday());
+                    if (day_jifenbao >= niubiZhuanDayMoney) {
+                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
+                    }
+                } catch (NumberFormatException e) {
                 }
             } catch (IOException e) {
                 balance.setAmount("-1");
@@ -306,6 +306,10 @@ public class BalanceServiceImpl implements BalanceService {
     @Override
     public void remove(Long[] ids) {
         if (ids != null && ids.length > 0) {
+            List<Balance> balances = balanceRepository.findByIds(ids);
+            for (Balance pojo : balances) {
+                articleRepository.delete(pojo.getPlatform(), pojo.getType(), pojo.getUserId(), pojo.getUsername());
+            }
             balanceRepository.remove(ids);
         }
     }
@@ -424,8 +428,24 @@ public class BalanceServiceImpl implements BalanceService {
                 } else if ("牛逼赚".equals(pojo.getPlatform())) {
                     url = getNiubiZhuanUrl(pojo.getParams());
                 }
+                Date date = new Date();
                 // 更新文章状态
-                articleRepository.updateLink(pojo.getUserId(), pojo.getPlatform(), pojo.getType(), pojo.getUsername(), url);
+                long total = articleRepository.countOne(pojo.getUserId(), pojo.getPlatform(), pojo.getType(), pojo.getUsername());
+                if (total > 0) {
+                    articleRepository.updateLink(pojo.getUserId(), pojo.getPlatform(), pojo.getType(), pojo.getUsername(), url);
+                } else {
+                    Article artcile = new Article();
+                    artcile.setType(pojo.getType());
+                    artcile.setWechat(pojo.getUsername());
+                    artcile.setUrl(url);
+                    artcile.setPlatform(pojo.getPlatform());
+                    artcile.setUserId(pojo.getUserId());
+                    artcile.setCreateDate(date);
+                    artcile.setTimes(20);
+                    artcile.setActive(1);
+                    artcile.setHold(0);
+                    articleRepository.save(artcile);
+                }
             }
         }
     }
