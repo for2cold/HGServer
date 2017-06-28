@@ -170,7 +170,7 @@
         <td class="status"></td>
         <td class="artcleStatus"></td>
         <td>
-            <a href="${ctx}/front/balance/{id}/withdraw" target="_blank" class="btn btn-sm btn-primary btn-withdraw">提现</a>
+            <a href="${ctx}/front/balance/{id}/withdraw" target="_blank" class="btn btn-sm btn-primary btn-withdraw" style="display: none;">提现</a>
             <a href="javascript:void(0);" class="btn btn-sm btn-info btn-update" data-id="">更新链接状态</a>
             <a style="display: none;" href="javascript:void(0);" class="btn btn-sm btn-info btn-record" data-id="">提现记录</a>
         </td>
@@ -512,6 +512,9 @@
             $row.find('.btn-withdraw').attr('href', href);
             $row.find('.btn-record').attr('data-id', balance.id);
             $row.find('.btn-update').attr('data-id', balance.id);
+            if ("瞎转" == platform || "无敌赚" == platform || "牛逼赚" == platform) {
+                $row.find('.btn-withdraw').show();
+            }
             if (platform == '无敌赚') {
                 $row.find('.btn-record').show();
             } else {

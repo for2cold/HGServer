@@ -161,7 +161,28 @@ public class HttpUtils {
         }
         HttpGet httpGet = new HttpGet(url);
         //执行请求操作，并拿到结果（同步阻塞）
-        httpGet.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 4.4.2; 2013023 Build/HM2013023) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36");
+        httpGet.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.1.1; Redmi Note 3 Build/LMY47V; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/51.0.2704.81 Mobile Safari/537.36");
+        CloseableHttpResponse response = client.execute(httpGet);
+        //获取结果实体
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            //按指定编码转换结果实体为String类型
+            body = EntityUtils.toString(entity, "utf-8");
+        }
+        EntityUtils.consume(entity);
+        //释放链接
+        response.close();
+        return body;
+    }
+
+    public static String getByCookie(String url, String cookies) throws IOException {
+        String body = "";
+        //创建httpclient对象
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet(url);
+        //执行请求操作，并拿到结果（同步阻塞）
+        httpGet.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.1.1; Redmi Note 3 Build/LMY47V; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/51.0.2704.81 Mobile Safari/537.36");
+        httpGet.setHeader("Cookie", cookies);
         CloseableHttpResponse response = client.execute(httpGet);
         //获取结果实体
         HttpEntity entity = response.getEntity();

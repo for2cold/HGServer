@@ -1,4 +1,3 @@
-import com.alibaba.fastjson.JSON;
 import com.kazyle.hugohelper.server.config.util.HttpUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -6,8 +5,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLEncoder;
 
 /**
  * <p>
@@ -21,57 +18,18 @@ import java.net.URLEncoder;
 public class Demo {
 
     public static void main(String[] args) throws IOException {
-        String url = "http://8802680.com.cn/1.html?RUJrN1osMTg1MjgxLDI3MSw2NjUxLDYwNjMxLCZ6eGM9MTQ5Nzc0NjE0Nw==";
-        String u = "NaN";
-        String id = url.substring(url.indexOf('?') + 1);
-        id = URLEncoder.encode(id, "utf-8");
-        url = URLEncoder.encode(url, "utf-8");
-        String result = HttpUtils.getUserAgent("http://ajax.xiazhuan.cc/?m=api&a=abc", "&u=" + u + "&id=" + id + "&h=" + url);
-        result = result.substring(1, result.length() - 1);
-        UrlView view = JSON.parseObject(result, UrlView.class);
-        Document doc = Jsoup.parse(new URL(view.getMsg()), 30000);
-        try {
-            Elements els = doc.getAllElements();
-            for (Element e : els) {
-                /*if ("list".equals(e.className())) {
-                    e.remove();
-                    continue;
-                }*/
-                /*if ("dboottom".equals(e.className())) {
-//                    e.remove();
-                    e.removeClass("dboottom");
-                    continue;
-                }*/
-            }
-            doc.getElementById("hengfu_top").remove();
-            doc.getElementById("wenzi_top").remove();
-            doc.getElementById("wenzi_bottom").remove();
-            doc.getElementById("hengfu_bottom").remove();
-            doc.getElementById("ad_top").remove();
-        } catch (Exception e) {
-        }
-        System.out.println(doc.outerHtml());
-    }
-
-    public static class UrlView {
-        private String code;
-
-        private String msg;
-
-        public String getCode() {
-            return code;
-        }
-
-        public void setCode(String code) {
-            this.code = code;
-        }
-
-        public String getMsg() {
-            return msg;
-        }
-
-        public void setMsg(String msg) {
-            this.msg = msg;
-        }
+        String url = "http://www.snabq.cn/User/index/index";
+        String result = HttpUtils.getByCookie(url, "user_pid=0; code=hHqlqIWmpbCweqapfX25aIB1sp8; sms_user_tel=15603056644; id=hHqlqIWmpbCweqapfX2paH91yJU");
+        Document doc = Jsoup.parse(result);
+        Elements els = doc.getElementsByClass("balance");
+        Element e = els.get(0);
+        String text = e.text();
+        text = text.replace("账户余额（元） ", "");
+        System.out.println("text-->" + text);
+        els = doc.getElementsByClass("juzhong");
+        e = els.get(1);
+        text = e.text();
+        text = text.replace("元", "");
+        System.out.println("juzhong-->" + text);
     }
 }

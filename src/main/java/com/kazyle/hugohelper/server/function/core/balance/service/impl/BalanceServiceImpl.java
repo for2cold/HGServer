@@ -53,6 +53,9 @@ public class BalanceServiceImpl implements BalanceService {
     private static final String WUDI_ZHUAN_URL = "http://wudizhuan.duoshoutuan.com/shell/android.php";
     private static final String NIUBI_ZHUAN_URL = "http://niubizhuan.duoshoutuan.com/shell/android.php";
     private static final String KUAI_ZHUAN_FA_URL = "http://rwb.dearclick.com/Api/User/my?sid=";
+    private static final String ZHAO_CAI_TU_TOKEN_URL = "http://zqw.2662126.com/App/Member/checkLoginToken";
+    private static final String ZHAO_CAI_TU_INDEX_URL = "http://zqw.2662126.com/App/Index/index";
+    private static final String KUAI_DE_BAO_URL = "http://www.snabq.cn/User/index/index";
 
     private static final String NIUBI_ZHUAN_HOST = "http://niubizhuan.duoshoutuan.com/";
 
@@ -66,6 +69,8 @@ public class BalanceServiceImpl implements BalanceService {
     private static final double xiaZhuanDayMoney = 1;
     private static final double wudiZhuanDayMoney = 1.08;
     private static final double niubiZhuanDayMoney = 1;
+    private static final double zhaocaituDayMoney = 20;
+    private static final double kuaiDeBaoTodayMoney = 10;
 
     @Override
     public List<Balance> findAll(Long userId, String platform, Integer type, Date date) {
@@ -94,6 +99,14 @@ public class BalanceServiceImpl implements BalanceService {
                 getKuaiZhuanFa(balances);
                 break;
             }
+            case "招财兔": {
+                getZhaoCaiTu(balances);
+                break;
+            }
+            case "快得宝": {
+                getKuaiDeBao(balances);
+                break;
+            }
         }
 
         if (!balances.isEmpty() && balances.size() > 1) {
@@ -114,6 +127,98 @@ public class BalanceServiceImpl implements BalanceService {
         }
 
         return balances;
+    }
+
+    private void getKuaiDeBao(List<Balance> balances) {
+        for (Balance balance : balances) {
+            String params = balance.getParams();
+            try {
+                String result = HttpUtils.getByCookie(KUAI_DE_BAO_URL, params);
+                Document doc = Jsoup.parse(result);
+                Elements els = doc.getElementsByClass("balance");
+                Element e = els.get(0);
+                String text = e.text();
+                text = text.replace("账户余额（元） ", "");
+                balance.setAmount(text);
+                els = doc.getElementsByClass("juzhong");
+                e = els.get(1);
+                text = e.text();
+                text = text.replace("元", "");
+                balance.setToday(text);
+                // 处理链接账号
+                String articleActive = balance.getArticleActive();
+                if (StringUtils.isNotEmpty(articleActive)) {
+                    if (articleActive.contains("1")) {
+                        balance.setArtcleStatus(1);
+                    } else {
+                        balance.setArtcleStatus(0);
+                    }
+                } else {
+                    balance.setArtcleStatus(2);
+                }
+                    // 超过指定金额，自动停止链接
+                try {
+                    double day_jifenbao = Double.parseDouble(balance.getToday());
+                    if (day_jifenbao >= kuaiDeBaoTodayMoney) {
+                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
+                    }
+                } catch (NumberFormatException e1) {
+                    e1.printStackTrace();
+                }
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
+
+    private void getZhaoCaiTu(List<Balance> balances) {
+        for (Balance balance : balances) {
+            String params = balance.getParams();
+            Map<String, String> map = HttpUtils.getParamMap(params);
+            if (map.isEmpty()) {
+                balance.setAmount("-1");
+                continue;
+            }
+            try {
+                String result = HttpUtils.postUserAgent(ZHAO_CAI_TU_TOKEN_URL, map);
+                ZhaoCaiTuView view = JSON.parseObject(result, ZhaoCaiTuView.class);
+                if (view.getCode() == 1 && "success".equals(view.getMessage())) {
+                    result = HttpUtils.postUserAgent(ZHAO_CAI_TU_INDEX_URL, map);
+                    Map<String, Object> resultMap = JSON.parseObject(result, Map.class);
+                    resultMap = (Map<String, Object>) resultMap.get("data");
+                    JSONObject obj = (JSONObject) resultMap.get("member");
+                    ZhaoCaiTuItemView item = JSON.parseObject(obj.toJSONString(), ZhaoCaiTuItemView.class);
+                    balance.setAmount(item.getResidue_money() + "");
+                    Map<String, Double> todayInfo = item.getToday_info();
+                    Double today = todayInfo.get("today_income");
+                    balance.setToday(today + "");
+                    if (!(item.getState() == 1)) {
+                        balance.setBlock("冻结");
+                    }
+                    // 处理链接账号
+                    String articleActive = balance.getArticleActive();
+                    if (StringUtils.isNotEmpty(articleActive)) {
+                        if (articleActive.contains("1")) {
+                            balance.setArtcleStatus(1);
+                        } else {
+                            balance.setArtcleStatus(0);
+                        }
+                    } else {
+                        balance.setArtcleStatus(2);
+                    }
+                    try {
+                        // 超过指定金额，自动停止链接
+                        double day_jifenbao = Double.parseDouble(balance.getToday());
+                        if (day_jifenbao >= zhaocaituDayMoney) {
+                            articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
+                        }
+                    } catch (NumberFormatException e) {
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void getXiaZhuan(List<Balance> balances) {

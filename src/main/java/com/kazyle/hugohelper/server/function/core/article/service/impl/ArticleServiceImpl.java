@@ -117,6 +117,8 @@ public class ArticleServiceImpl implements ArticleService {
             platforms.add("牛逼赚");
             platforms.add("转乐");
             platforms.add("快转发");
+            platforms.add("招财兔");
+            platforms.add("快得宝");
         } else {
             platforms.add(platform);
         }
