@@ -1,10 +1,7 @@
 import com.kazyle.hugohelper.server.config.util.HttpUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * <p>
@@ -18,18 +15,10 @@ import java.io.IOException;
 public class Demo {
 
     public static void main(String[] args) throws IOException {
-        String url = "http://www.snabq.cn/User/index/index";
-        String result = HttpUtils.getByCookie(url, "user_pid=0; code=hHqlqIWmpbCweqapfX25aIB1sp8; sms_user_tel=15603056644; id=hHqlqIWmpbCweqapfX2paH91yJU");
-        Document doc = Jsoup.parse(result);
-        Elements els = doc.getElementsByClass("balance");
-        Element e = els.get(0);
-        String text = e.text();
-        text = text.replace("账户余额（元） ", "");
-        System.out.println("text-->" + text);
-        els = doc.getElementsByClass("juzhong");
-        e = els.get(1);
-        text = e.text();
-        text = text.replace("元", "");
-        System.out.println("juzhong-->" + text);
+        String url = "http://zqw.2662126.com/App/Member/login";
+        String params = "phone=13430321448&password=19881027&deviceId=357750052152864";
+        Map<String, String> paramMap = HttpUtils.getParamMap(params);
+        String result = HttpUtils.postUserAgent(url, paramMap);
+        System.out.println("result-->" + result);
     }
 }

@@ -53,7 +53,7 @@ public class BalanceServiceImpl implements BalanceService {
     private static final String WUDI_ZHUAN_URL = "http://wudizhuan.duoshoutuan.com/shell/android.php";
     private static final String NIUBI_ZHUAN_URL = "http://niubizhuan.duoshoutuan.com/shell/android.php";
     private static final String KUAI_ZHUAN_FA_URL = "http://rwb.dearclick.com/Api/User/my?sid=";
-    private static final String ZHAO_CAI_TU_TOKEN_URL = "http://zqw.2662126.com/App/Member/checkLoginToken";
+    private static final String ZHAO_CAI_TU_LOGIN_URL = "http://zqw.2662126.com/App/Member/login";
     private static final String ZHAO_CAI_TU_INDEX_URL = "http://zqw.2662126.com/App/Index/index";
     private static final String KUAI_DE_BAO_URL = "http://www.snabq.cn/User/index/index";
 
@@ -173,52 +173,90 @@ public class BalanceServiceImpl implements BalanceService {
 
     private void getZhaoCaiTu(List<Balance> balances) {
         for (Balance balance : balances) {
-            String params = balance.getParams();
-            Map<String, String> map = HttpUtils.getParamMap(params);
-            if (map.isEmpty()) {
-                balance.setAmount("-1");
-                continue;
-            }
+            String params = balance.getWithdraw();
             try {
-                String result = HttpUtils.postUserAgent(ZHAO_CAI_TU_TOKEN_URL, map);
-                ZhaoCaiTuView view = JSON.parseObject(result, ZhaoCaiTuView.class);
-                if (view.getCode() == 1 && "success".equals(view.getMessage())) {
+                Map<String, String> map = Maps.newHashMap();
+                String result;
+                ZhaoCaiTuView view = null;
+                boolean update = false;
+                if (StringUtils.isEmpty(params)) {
+                    // 自动登录，获取token参数
+                    params = getZhaoCaiTuToken(balance, params);
+                    update = true;
+                }
+                map = HttpUtils.getParamMap(params);
+                if (map.isEmpty()) {
+                    balance.setAmount("-1");
+                    continue;
+                }
+                result = HttpUtils.postUserAgent(ZHAO_CAI_TU_INDEX_URL, map);
+                Map<String, Object> resultMap = JSON.parseObject(result, Map.class);
+                int code = (int) resultMap.get("code");
+                String msg = (String) resultMap.get("message");
+                if (code == 0 && "fail".equals(msg)) {
+                    // 重新获取token
+                    params = getZhaoCaiTuToken(balance, params);
+                    map = HttpUtils.getParamMap(params);
+                    // 重新发起请求
                     result = HttpUtils.postUserAgent(ZHAO_CAI_TU_INDEX_URL, map);
-                    Map<String, Object> resultMap = JSON.parseObject(result, Map.class);
-                    resultMap = (Map<String, Object>) resultMap.get("data");
-                    JSONObject obj = (JSONObject) resultMap.get("member");
-                    ZhaoCaiTuItemView item = JSON.parseObject(obj.toJSONString(), ZhaoCaiTuItemView.class);
-                    balance.setAmount(item.getResidue_money() + "");
-                    Map<String, Double> todayInfo = item.getToday_info();
-                    Double today = todayInfo.get("today_income");
-                    balance.setToday(today + "");
-                    if (!(item.getState() == 1)) {
-                        balance.setBlock("冻结");
-                    }
-                    // 处理链接账号
-                    String articleActive = balance.getArticleActive();
-                    if (StringUtils.isNotEmpty(articleActive)) {
-                        if (articleActive.contains("1")) {
-                            balance.setArtcleStatus(1);
-                        } else {
-                            balance.setArtcleStatus(0);
-                        }
+                    resultMap = JSON.parseObject(result, Map.class);
+                    update = true;
+                }
+                resultMap = (Map<String, Object>) resultMap.get("data");
+                JSONObject obj = (JSONObject) resultMap.get("member");
+                ZhaoCaiTuItemView item = JSON.parseObject(obj.toJSONString(), ZhaoCaiTuItemView.class);
+                balance.setAmount(item.getResidue_money() + "");
+                Map<String, Double> todayInfo = item.getToday_info();
+                Double today = todayInfo.get("today_income");
+                balance.setToday(today + "");
+                if (!(item.getState() == 1)) {
+                    balance.setBlock("冻结");
+                }
+                // 处理链接账号
+                String articleActive = balance.getArticleActive();
+                if (StringUtils.isNotEmpty(articleActive)) {
+                    if (articleActive.contains("1")) {
+                        balance.setArtcleStatus(1);
                     } else {
-                        balance.setArtcleStatus(2);
+                        balance.setArtcleStatus(0);
                     }
-                    try {
-                        // 超过指定金额，自动停止链接
-                        double day_jifenbao = Double.parseDouble(balance.getToday());
-                        if (day_jifenbao >= zhaocaituDayMoney) {
-                            articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
-                        }
-                    } catch (NumberFormatException e) {
+                } else {
+                    balance.setArtcleStatus(2);
+                }
+                try {
+                    // 超过指定金额，自动停止链接
+                    double day_jifenbao = Double.parseDouble(balance.getToday());
+                    if (day_jifenbao >= zhaocaituDayMoney) {
+                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
                     }
+                } catch (NumberFormatException e) {
+                }
+                // 更新参数
+                if (update) {
+                    balanceRepository.updateWithdraw(balance.getId(), params);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private String getZhaoCaiTuToken(Balance balance, String params) throws IOException {
+        Map<String, String> map;
+        String result;
+        ZhaoCaiTuView view;
+        map = HttpUtils.getParamMap(balance.getParams());
+        result = HttpUtils.postUserAgent(ZHAO_CAI_TU_LOGIN_URL, map);
+        view = JSON.parseObject(result, ZhaoCaiTuView.class);
+        if (view.getCode() == 1) {
+            try {
+                JSONObject obj = (JSONObject) view.getData();
+                ZhaoCaiTuTokenView token = obj.toJavaObject(ZhaoCaiTuTokenView.class);
+                params = token.toString();
+            } catch (Exception e) {
+            }
+        }
+        return params;
     }
 
     private void getXiaZhuan(List<Balance> balances) {
