@@ -56,6 +56,10 @@ public class BalanceServiceImpl implements BalanceService {
     private static final String ZHAO_CAI_TU_LOGIN_URL = "http://zqw.2662126.com/App/Member/login";
     private static final String ZHAO_CAI_TU_INDEX_URL = "http://zqw.2662126.com/App/Index/index";
     private static final String KUAI_DE_BAO_URL = "http://www.snabq.cn/User/index/index";
+    private static final String ZHUAN_FA_BAO_LOGIN_URL = "http://api.jubaokeji.cn/index/index.php?c=index&m=user&a=new_login";
+    private static final String ZHUAN_FA_BAO_INFO_URL = "http://api.jubaokeji.cn/index/index.php?c=index&m=userArticle&a=myInfo";
+    private static final String AI_ZHUAN_FA_LOGIN_URL = "http://jk.aizhuanfa.com.cn/index/index.php?c=index&m=user&a=new_login";
+    private static final String AI_ZHUAN_FA_INFO_URL = "http://jk.aizhuanfa.com.cn/index/index.php?c=index&m=userArticle&a=myInfo";
 
     private static final String NIUBI_ZHUAN_HOST = "http://niubizhuan.duoshoutuan.com/";
 
@@ -71,6 +75,7 @@ public class BalanceServiceImpl implements BalanceService {
     private static final double niubiZhuanDayMoney = 1;
     private static final double zhaocaituDayMoney = 20;
     private static final double kuaiDeBaoTodayMoney = 10;
+    private static final double zhuanfabaoDayMoney = 1;
 
     @Override
     public List<Balance> findAll(Long userId, String platform, Integer type, Date date) {
@@ -107,6 +112,14 @@ public class BalanceServiceImpl implements BalanceService {
                 getKuaiDeBao(balances);
                 break;
             }
+            case "转发宝": {
+                getZhuanFaBao(balances);
+                break;
+            }
+            case "爱转发": {
+                getAiZhuanFa(balances);
+                break;
+            }
         }
 
         if (!balances.isEmpty() && balances.size() > 1) {
@@ -129,6 +142,143 @@ public class BalanceServiceImpl implements BalanceService {
         return balances;
     }
 
+    private void getAiZhuanFa(List<Balance> balances) {
+        for (Balance balance : balances) {
+            String params = balance.getWithdraw();
+            try {
+                Map<String, String> map = Maps.newHashMap();
+                String result;
+                ZhuanFaBaoView view = null;
+                boolean update = false;
+                if (StringUtils.isEmpty(params)) {
+                    // 自动登录，获取token参数
+                    params = getZhuanFaBaoToken(balance, params, AI_ZHUAN_FA_LOGIN_URL);
+                    update = true;
+                }
+                map = HttpUtils.getParamMap(params);
+                if (map.isEmpty()) {
+                    balance.setAmount("-1");
+                    continue;
+                }
+                result = HttpUtils.postUserAgent(AI_ZHUAN_FA_INFO_URL, map);
+                view = JSON.parseObject(result, ZhuanFaBaoView.class);
+                if (view.getStatus() != 200) {
+                    // 重新获取token
+                    params = getZhuanFaBaoToken(balance, params, AI_ZHUAN_FA_LOGIN_URL);
+                    map = HttpUtils.getParamMap(params);
+                    // 重新发起请求
+                    result = HttpUtils.postUserAgent(AI_ZHUAN_FA_INFO_URL, map);
+                    view = JSON.parseObject(result, ZhuanFaBaoView.class);
+                    update = true;
+                }
+                JSONObject obj = (JSONObject) view.getData();
+                ZhuanFaBaoView.ZhuanFaBaoInfoView info = JSON.parseObject(obj.toJSONString(), ZhuanFaBaoView.ZhuanFaBaoInfoView.class);
+                balance.setAmount(info.getScore());
+                balance.setToday(info.getDayScore());
+                // 处理链接账号
+                getArticleStatus(balance);
+                try {
+                    // 超过指定金额，自动停止链接
+                    double day_jifenbao = Double.parseDouble(balance.getToday());
+                    if (day_jifenbao >= zhuanfabaoDayMoney) {
+                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
+                    }
+                } catch (NumberFormatException e) {
+                }
+                // 更新参数
+                if (update) {
+                    balanceRepository.updateWithdraw(balance.getId(), params);
+                }
+            } catch (Exception e) {
+
+            }
+        }
+    }
+
+    private void getZhuanFaBao(List<Balance> balances) {
+        for (Balance balance : balances) {
+            String params = balance.getWithdraw();
+            try {
+                Map<String, String> map = Maps.newHashMap();
+                String result;
+                ZhuanFaBaoView view = null;
+                boolean update = false;
+                if (StringUtils.isEmpty(params)) {
+                    // 自动登录，获取token参数
+                    params = getZhuanFaBaoToken(balance, params, ZHUAN_FA_BAO_LOGIN_URL);
+                    update = true;
+                }
+                map = HttpUtils.getParamMap(params);
+                if (map.isEmpty()) {
+                    balance.setAmount("-1");
+                    continue;
+                }
+                result = HttpUtils.postUserAgent(ZHUAN_FA_BAO_INFO_URL, map);
+                view = JSON.parseObject(result, ZhuanFaBaoView.class);
+                if (view.getStatus() != 200) {
+                    // 重新获取token
+                    params = getZhuanFaBaoToken(balance, params, ZHUAN_FA_BAO_LOGIN_URL);
+                    map = HttpUtils.getParamMap(params);
+                    // 重新发起请求
+                    result = HttpUtils.postUserAgent(ZHUAN_FA_BAO_INFO_URL, map);
+                    view = JSON.parseObject(result, ZhuanFaBaoView.class);
+                    update = true;
+                }
+                JSONObject obj = (JSONObject) view.getData();
+                ZhuanFaBaoView.ZhuanFaBaoInfoView info = JSON.parseObject(obj.toJSONString(), ZhuanFaBaoView.ZhuanFaBaoInfoView.class);
+                balance.setAmount(info.getScore());
+                balance.setToday(info.getDayScore());
+                // 处理链接账号
+                getArticleStatus(balance);
+                try {
+                    // 超过指定金额，自动停止链接
+                    double day_jifenbao = Double.parseDouble(balance.getToday());
+                    if (day_jifenbao >= zhuanfabaoDayMoney) {
+                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
+                    }
+                } catch (NumberFormatException e) {
+                }
+                // 更新参数
+                if (update) {
+                    balanceRepository.updateWithdraw(balance.getId(), params);
+                }
+            } catch (Exception e) {
+
+            }
+        }
+    }
+
+    private void getArticleStatus(Balance balance) {
+        String articleActive = balance.getArticleActive();
+        if (StringUtils.isNotEmpty(articleActive)) {
+            if (articleActive.contains("1")) {
+                balance.setArtcleStatus(1);
+            } else {
+                balance.setArtcleStatus(0);
+            }
+        } else {
+            balance.setArtcleStatus(2);
+        }
+    }
+
+    private String getZhuanFaBaoToken(Balance balance, String params, String url) throws IOException {
+        Map<String, String> map;
+        String result;
+        ZhuanFaBaoView view;
+        map = HttpUtils.getParamMap(balance.getParams());
+        result = HttpUtils.postUserAgent(url, map);
+        view = JSON.parseObject(result, ZhuanFaBaoView.class);
+        if (view.getStatus() == 200) {
+            try {
+                JSONObject obj = (JSONObject) view.getData();
+                ZhuanFaBaoView.ZhuanFaBaoLoginView token = obj.toJavaObject(ZhuanFaBaoView.ZhuanFaBaoLoginView.class);
+                params = token.toString();
+            } catch (Exception e) {
+            }
+        }
+        return params;
+    }
+
     private void getKuaiDeBao(List<Balance> balances) {
         for (Balance balance : balances) {
             String params = balance.getParams();
@@ -146,16 +296,7 @@ public class BalanceServiceImpl implements BalanceService {
                 text = text.replace("元", "");
                 balance.setToday(text);
                 // 处理链接账号
-                String articleActive = balance.getArticleActive();
-                if (StringUtils.isNotEmpty(articleActive)) {
-                    if (articleActive.contains("1")) {
-                        balance.setArtcleStatus(1);
-                    } else {
-                        balance.setArtcleStatus(0);
-                    }
-                } else {
-                    balance.setArtcleStatus(2);
-                }
+                getArticleStatus(balance);
                     // 超过指定金额，自动停止链接
                 try {
                     double day_jifenbao = Double.parseDouble(balance.getToday());
@@ -213,16 +354,7 @@ public class BalanceServiceImpl implements BalanceService {
                     balance.setBlock("冻结");
                 }
                 // 处理链接账号
-                String articleActive = balance.getArticleActive();
-                if (StringUtils.isNotEmpty(articleActive)) {
-                    if (articleActive.contains("1")) {
-                        balance.setArtcleStatus(1);
-                    } else {
-                        balance.setArtcleStatus(0);
-                    }
-                } else {
-                    balance.setArtcleStatus(2);
-                }
+                getArticleStatus(balance);
                 try {
                     // 超过指定金额，自动停止链接
                     double day_jifenbao = Double.parseDouble(balance.getToday());
@@ -288,16 +420,7 @@ public class BalanceServiceImpl implements BalanceService {
                     balance.setBlock(view.getBlock_remark());
                 }
                 // 处理链接账号
-                String articleActive = balance.getArticleActive();
-                if (StringUtils.isNotEmpty(articleActive)) {
-                    if (articleActive.contains("1")) {
-                        balance.setArtcleStatus(1);
-                    } else {
-                        balance.setArtcleStatus(0);
-                    }
-                } else {
-                    balance.setArtcleStatus(2);
-                }
+                getArticleStatus(balance);
                 try {
                     // 超过指定金额，自动停止链接
                     double day_jifenbao = Double.parseDouble(balance.getToday());
@@ -342,16 +465,7 @@ public class BalanceServiceImpl implements BalanceService {
                     balance.setBlock(view.getBlock_remark());
                 }
                 // 处理链接账号
-                String articleActive = balance.getArticleActive();
-                if (StringUtils.isNotEmpty(articleActive)) {
-                    if (articleActive.contains("1")) {
-                        balance.setArtcleStatus(1);
-                    } else {
-                        balance.setArtcleStatus(0);
-                    }
-                } else {
-                    balance.setArtcleStatus(2);
-                }
+                getArticleStatus(balance);
                 try {
                     // 超过指定金额，自动停止链接
                     double day_jifenbao = Double.parseDouble(balance.getToday());
@@ -396,16 +510,7 @@ public class BalanceServiceImpl implements BalanceService {
                     balance.setBlock(view.getBlock_remark());
                 }
                 // 处理链接账号
-                String articleActive = balance.getArticleActive();
-                if (StringUtils.isNotEmpty(articleActive)) {
-                    if (articleActive.contains("1")) {
-                        balance.setArtcleStatus(1);
-                    } else {
-                        balance.setArtcleStatus(0);
-                    }
-                } else {
-                    balance.setArtcleStatus(2);
-                }
+                getArticleStatus(balance);
                 try {
                     // 超过指定金额，自动停止链接
                     double day_jifenbao = Double.parseDouble(balance.getToday());
