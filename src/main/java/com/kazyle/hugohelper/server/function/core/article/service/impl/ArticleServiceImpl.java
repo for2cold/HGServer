@@ -120,6 +120,7 @@ public class ArticleServiceImpl implements ArticleService {
             platforms.add("招财兔");
             platforms.add("快得宝");
             platforms.add("转发宝");
+            platforms.add("爱转发");
         } else {
             platforms.add(platform);
         }
