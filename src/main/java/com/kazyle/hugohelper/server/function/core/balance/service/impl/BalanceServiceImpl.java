@@ -91,7 +91,7 @@ public class BalanceServiceImpl implements BalanceService {
     // 日收入限制
     private static final double xiaZhuanDayMoney = 1;
     private static final double wudiZhuanDayMoney = 1.08;
-    private static final double niubiZhuanDayMoney = 1;
+    private static final double niubiZhuanDayMoney = 3;
     private static final double zhaocaituDayMoney = 20;
     private static final double kuaiDeBaoTodayMoney = 10;
     private static final double zhuanfabaoDayMoney = 1;
