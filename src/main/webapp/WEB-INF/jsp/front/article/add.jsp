@@ -71,6 +71,12 @@
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label class="control-label col-md-4 col-sm-4" for="url">提现参数</label>
+                                <div class="col-md-6 col-sm-6">
+                                    <textarea class="form-control" id="withdraw" name="withdraw" rows="4" data-parsley-range="[5,500]"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label class="control-label col-md-4 col-sm-4"></label>
                                 <div class="col-md-6 col-sm-6">
                                     <c:if test="${empty type}">

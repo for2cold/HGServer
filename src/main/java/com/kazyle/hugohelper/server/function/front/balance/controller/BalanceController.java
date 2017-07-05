@@ -101,9 +101,7 @@ public class BalanceController extends BaseFrontController<Balance> {
     @ResponseBody
     public ResponseEntity updateArticles(Long[] ids) {
         ResponseEntity entity = new ResponseEntity(ResponseCode.SUCCESS.getValue(), "操作成功！");
-        for (Long id : ids) {
-            balanceService.updateArticle(id);
-        }
+        balanceService.updateArticles(ids);
         return entity;
     }
 

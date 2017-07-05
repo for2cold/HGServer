@@ -89,7 +89,7 @@ public class ArticleServiceImpl implements ArticleService {
         articleRepository.save(pojo);
 
         if (StringUtils.isNotEmpty(pojo.getParams())) {
-            balanceService.saveBalance(pojo.getUserId(), pojo.getPlatform(), pojo.getWechat(), pojo.getType(), pojo.getParams());
+            balanceService.saveBalance(pojo.getUserId(), pojo.getPlatform(), pojo.getWechat(), pojo.getType(), pojo.getParams(), pojo.getWithdraw());
         }
     }
 
@@ -120,6 +120,8 @@ public class ArticleServiceImpl implements ArticleService {
             platforms.add("招财兔");
             platforms.add("快得宝");
             platforms.add("转发宝");
+            platforms.add("超人赚");
+            platforms.add("爱传");
             platforms.add("爱转发");
         } else {
             platforms.add(platform);
@@ -182,7 +184,7 @@ public class ArticleServiceImpl implements ArticleService {
         articleRepository.updateEntity(pojo);
 
         if (StringUtils.isNotEmpty(pojo.getParams())) {
-            balanceService.saveBalance(pojo.getUserId(), pojo.getPlatform(), pojo.getWechat(), pojo.getType(), pojo.getParams());
+            balanceService.saveBalance(pojo.getUserId(), pojo.getPlatform(), pojo.getWechat(), pojo.getType(), pojo.getParams(), pojo.getWithdraw());
         }
     }
 

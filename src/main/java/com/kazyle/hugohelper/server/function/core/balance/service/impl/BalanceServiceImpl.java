@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.util.*;
 
 /**
@@ -49,6 +50,17 @@ public class BalanceServiceImpl implements BalanceService {
     @Resource
     private ArticleService articleService;
 
+    private static final String XIAZHUAN = "瞎转";
+    private static final String WUDIZHUAN = "无敌赚";
+    private static final String NIUBIZHUAN = "牛逼赚";
+    private static final String CHAORENZHUAN = "超人赚";
+    private static final String AICHUAN = "爱传";
+    private static final String ZHAOCAITU = "招财兔";
+    private static final String ZHUANFABAO = "转发宝";
+    private static final String AIZHUANFA = "爱转发";
+    private static final String KUAIDEBAO = "快得宝";
+    private static final String KUAIZHUANFA = "快转发";
+
     private static final String XIA_ZHUAN_URL = "http://xiazhuan.duoshoutuan.com/shell/android.php";
     private static final String WUDI_ZHUAN_URL = "http://wudizhuan.duoshoutuan.com/shell/android.php";
     private static final String NIUBI_ZHUAN_URL = "http://niubizhuan.duoshoutuan.com/shell/android.php";
@@ -60,12 +72,19 @@ public class BalanceServiceImpl implements BalanceService {
     private static final String ZHUAN_FA_BAO_INFO_URL = "http://api.jubaokeji.cn/index/index.php?c=index&m=userArticle&a=myInfo";
     private static final String AI_ZHUAN_FA_LOGIN_URL = "http://jk.aizhuanfa.com.cn/index/index.php?c=index&m=user&a=new_login";
     private static final String AI_ZHUAN_FA_INFO_URL = "http://jk.aizhuanfa.com.cn/index/index.php?c=index&m=userArticle&a=myInfo";
+    private static final String SUPER_ZHUAN_URL = "http://app.584230.com/?cur_plat=android";
+    private static final String AI_CHUAN_URL = "http://app.aichuan8.com/?cur_plat=android";
 
     private static final String NIUBI_ZHUAN_HOST = "http://niubizhuan.duoshoutuan.com/";
+
+    private static final String SUPER_ZHUAN_ARTICLE_URL = "http://app.584230.com/share_article/tui";
+    private static final String AI_CHUAN_ARTICLE_URL = "http://app.aichuan8.com/share_article/tui";
 
     private static final String XIA_ZHUAN_WIDTHDRAW = "&act=url&network=WIFI&signature=82024da003020102020420cabb1d300d&version=2&";
     private static final String WUDI_ZHUAN_WIDTHDRAW = "&act=url&network=WIFI&signature=82024da003020102020411b11dba300d&version=1";
     private static final String NIUBI_ZHUAN_WIDTHDRAW = "&act=url&network=WIFI&signature=82024da00302010202046fc175f5300d&version=9&";
+    private static final String SUPER_ZHUAN_WITHDRAW = "http://app.584230.com/withdraw/index.html";
+    private static final String AI_CHUAN_WITHDRAW = "http://app.aichuan8.com/withdraw/index.html";
 
     // 初始化提现参数
     private static final boolean init = false;
@@ -83,43 +102,52 @@ public class BalanceServiceImpl implements BalanceService {
             type = 0;
         }
         if (StringUtils.isEmpty(platform)) {
-            platform = "瞎转";
+            platform = XIAZHUAN;
         }
         List<Balance> balances = balanceRepository.findAll(userId, platform, type, date);
 
         switch (platform) {
-            case "瞎转": {
+            case XIAZHUAN: {
                 getXiaZhuan(balances);
                 break;
             }
-            case "无敌赚": {
+            case WUDIZHUAN: {
                 getWuDiZhuan(balances);
                 break;
             }
-            case "牛逼赚": {
+            case NIUBIZHUAN: {
                 getNiuBiZhuan(balances);
                 break;
             }
-            case "快转发": {
+            case KUAIZHUANFA: {
                 getKuaiZhuanFa(balances);
                 break;
             }
-            case "招财兔": {
+            case ZHAOCAITU: {
                 getZhaoCaiTu(balances);
                 break;
             }
-            case "快得宝": {
+            case KUAIDEBAO: {
                 getKuaiDeBao(balances);
                 break;
             }
-            case "转发宝": {
+            case ZHUANFABAO: {
                 getZhuanFaBao(balances);
                 break;
             }
-            case "爱转发": {
+            case AIZHUANFA: {
                 getAiZhuanFa(balances);
                 break;
             }
+            case CHAORENZHUAN: {
+                getSuperZhuan(balances);
+                break;
+            }
+            case AICHUAN: {
+                getAiChuan(balances);
+                break;
+            }
+
         }
 
         if (!balances.isEmpty() && balances.size() > 1) {
@@ -140,6 +168,44 @@ public class BalanceServiceImpl implements BalanceService {
         }
 
         return balances;
+    }
+
+    private void getAiChuan(List<Balance> balances) {
+        for (Balance pojo : balances) {
+            String cookie = pojo.getParams();
+            String userAgent = pojo.getWithdraw();
+            try {
+                String result = HttpUtils.postByCookieAndUserAgent(AI_CHUAN_URL, cookie, userAgent, null);
+                SuperAiZhuanView view = JSON.parseObject(result, SuperAiZhuanView.class);
+                pojo.setAmount(view.getBalance());
+                pojo.setToday(view.getToday_income());
+                // 处理链接账号
+                getArticleStatus(pojo);
+                if (!(view.getStatus() == 1)) {
+                    pojo.setBlock("账号失效");
+                }
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    private void getSuperZhuan(List<Balance> balances) {
+        for (Balance pojo : balances) {
+            String cookie = pojo.getParams();
+            String userAgent = pojo.getWithdraw();
+            try {
+                String result = HttpUtils.postByCookieAndUserAgent(SUPER_ZHUAN_URL, cookie, userAgent, null);
+                SuperAiZhuanView view = JSON.parseObject(result, SuperAiZhuanView.class);
+                pojo.setAmount(view.getBalance());
+                pojo.setToday(view.getToday_income());
+                // 处理链接账号
+                getArticleStatus(pojo);
+                if (!(view.getStatus() == 1)) {
+                    pojo.setBlock("账号失效");
+                }
+            } catch (Exception e) {
+            }
+        }
     }
 
     private void getAiZhuanFa(List<Balance> balances) {
@@ -582,7 +648,7 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public void saveBalance(Long userId, String platform, String username, Integer type, String params) {
+    public void saveBalance(Long userId, String platform, String username, Integer type, String params, String withdraw) {
         long count = balanceRepository.countOne(userId, platform, username, type);
         if (count == 0) {
             Balance pojo = new Balance();
@@ -590,9 +656,10 @@ public class BalanceServiceImpl implements BalanceService {
             pojo.setPlatform(platform);
             pojo.setType(type);
             pojo.setParams(params);
+            pojo.setWithdraw(withdraw);
             pojo.setUsername(username);
             // 获取提现参数
-            if ("瞎转".equals(platform)) {
+            if (XIAZHUAN.equals(platform)) {
                 Map<String, String> map = HttpUtils.getParamMap(params);
                 String uid = map.get("uid");
                 String qqKey = map.get("qqkey");
@@ -600,7 +667,7 @@ public class BalanceServiceImpl implements BalanceService {
                 String device = map.get("device");
                 String widthdraw = "uid=" + uid + "&qqkey=" + qqKey + "&username=" + uname + "&device=" + device + XIA_ZHUAN_WIDTHDRAW;
                 pojo.setWithdraw(widthdraw);
-            } else if ("无敌赚".equals(platform)) {
+            } else if (WUDIZHUAN.equals(platform)) {
                 Map<String, String> map = HttpUtils.getParamMap(params);
                 String uid = map.get("uid");
                 String qqKey = map.get("qqkey");
@@ -608,7 +675,7 @@ public class BalanceServiceImpl implements BalanceService {
                 String device = map.get("device");
                 String widthdraw = "uid=" + uid + "&qqkey=" + qqKey + "&username=" + uname + "&device=" + device + WUDI_ZHUAN_WIDTHDRAW;
                 pojo.setWithdraw(widthdraw);
-            } else if ("牛逼赚".equals(platform)) {
+            } else if (NIUBIZHUAN.equals(platform)) {
                 Map<String, String> map = HttpUtils.getParamMap(params);
                 String uid = map.get("uid");
                 String qqKey = map.get("qqkey");
@@ -625,14 +692,20 @@ public class BalanceServiceImpl implements BalanceService {
     public String getWithdrawUrl(Long id) throws IOException {
         Balance pojo = balanceRepository.findOne(id);
         Map<String, String> map = HttpUtils.getParamMap(pojo.getWithdraw());
-        if (pojo.getPlatform().equals("瞎转")) {
+        if (pojo.getPlatform().equals(XIAZHUAN)) {
             return HttpUtils.postUserAgent(XIA_ZHUAN_URL, map);
         }
-        if (pojo.getPlatform().equals("无敌赚")) {
+        if (pojo.getPlatform().equals(WUDIZHUAN)) {
             return HttpUtils.postUserAgent(WUDI_ZHUAN_URL, map);
         }
-        if (pojo.getPlatform().equals("牛逼赚")) {
+        if (pojo.getPlatform().equals(NIUBIZHUAN)) {
             return HttpUtils.postUserAgent(NIUBI_ZHUAN_URL, map);
+        }
+        if (pojo.getPlatform().equals(CHAORENZHUAN)) {
+            return SUPER_ZHUAN_WITHDRAW + "?cookie=" + URLEncoder.encode(pojo.getParams(), "utf-8") + "&ua=" + URLEncoder.encode(pojo.getWithdraw(), "utf-8");
+        }
+        if (pojo.getPlatform().equals(AICHUAN)) {
+            return AI_CHUAN_WITHDRAW + "?cookie=" + URLEncoder.encode(pojo.getParams(), "utf-8") + "&ua=" + URLEncoder.encode(pojo.getWithdraw(), "utf-8");
         }
         return null;
     }
@@ -664,17 +737,31 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
+    public void updateArticles(Long[] ids) {
+        for (Long id : ids) {
+            Balance pojo = balanceRepository.findOne(id);
+            if (null != pojo) {
+                articleRepository.activeArticle(pojo.getUserId(), pojo.getType(), pojo.getPlatform(), pojo.getUsername());
+            }
+        }
+    }
+
+    @Override
     public void updateLink(Long[] ids) throws IOException {
         if (ids != null && ids.length > 0) {
             List<Balance> balances = balanceRepository.findByIds(ids);
             for (Balance pojo : balances) {
                 String url = null;
-                if ("瞎转".equals(pojo.getPlatform())) {
+                if (XIAZHUAN.equals(pojo.getPlatform())) {
                     url = getXiaZhuanUrl(pojo.getParams());
-                } else if ("无敌赚".equals(pojo.getPlatform())) {
+                } else if (WUDIZHUAN.equals(pojo.getPlatform())) {
                     url = getWudiZhuanUrl(pojo.getParams());
-                } else if ("牛逼赚".equals(pojo.getPlatform())) {
+                } else if (NIUBIZHUAN.equals(pojo.getPlatform())) {
                     url = getNiubiZhuanUrl(pojo.getParams());
+                } else if (CHAORENZHUAN.equals(pojo.getPlatform())) {
+                    url = getSuperZhuanUrl(pojo.getParams(), pojo.getWithdraw());
+                } else if (AICHUAN.equals(pojo.getPlatform())) {
+                    url = getAiChuanUrl(pojo.getParams(), pojo.getWithdraw());
                 }
                 Date date = new Date();
                 // 更新文章状态
@@ -698,6 +785,66 @@ public class BalanceServiceImpl implements BalanceService {
         }
     }
 
+    private String getAiChuanUrl(String cookie, String userAgent) throws IOException {
+        String target = null;
+        String html = HttpUtils.getByCookieAndUserAgent(AI_CHUAN_ARTICLE_URL, cookie, userAgent);
+        Document doc = Jsoup.parse(html);
+        Elements es = doc.getElementsByClass("context-del");
+        Random random = new Random();
+        int index = random.nextInt(es.size());
+        Element e = es.get(index);
+        String onclick = e.attr("onclick");
+        onclick = onclick.replace("openNewWind('", "").replace("', 'login_blank')", "").replace("','login_blank')", "");
+        html = HttpUtils.getByCookieAndUserAgent(onclick, cookie, userAgent);
+        doc = Jsoup.parse(html);
+        es = doc.getElementsByTag("script");
+        for (Element ee : es) {
+            String[] data = ee.data().toString().trim().split("var");
+            for(String variable : data){
+                variable = variable.trim();
+                if(variable.startsWith("share_art_data = ")){
+                    variable = variable.replace("share_art_data = ", "");
+                    variable = variable.substring(0, variable.indexOf(';'));
+                    Map<String, Object> map = JSON.parseObject(variable, Map.class);
+                    Map<String, String> copy = (Map<String, String>) map.get("copy");
+                    target = copy.get("url");
+                    break;
+                }
+            }
+        }
+        return target;
+    }
+
+    private String getSuperZhuanUrl(String cookie, String userAgent) throws IOException {
+        String target = null;
+        String html = HttpUtils.getByCookieAndUserAgent(SUPER_ZHUAN_ARTICLE_URL, cookie, userAgent);
+        Document doc = Jsoup.parse(html);
+        Elements es = doc.getElementsByClass("context-del");
+        Random random = new Random();
+        int index = random.nextInt(es.size());
+        Element e = es.get(index);
+        String onclick = e.attr("onclick");
+        onclick = onclick.replace("openNewWind('", "").replace("', 'login_blank')", "").replace("','login_blank')", "");
+        html = HttpUtils.getByCookieAndUserAgent(onclick, cookie, userAgent);
+        doc = Jsoup.parse(html);
+        es = doc.getElementsByTag("script");
+        for (Element ee : es) {
+            String[] data = ee.data().toString().trim().split("var");
+            for(String variable : data){
+                variable = variable.trim();
+                if(variable.startsWith("share_art_data = ")){
+                    variable = variable.replace("share_art_data = ", "");
+                    variable = variable.substring(0, variable.indexOf(';'));
+                    Map<String, Object> map = JSON.parseObject(variable, Map.class);
+                    Map<String, String> copy = (Map<String, String>) map.get("copy");
+                    target = copy.get("url");
+                    break;
+                }
+            }
+        }
+        return target;
+    }
+
     @Override
     public String importAccount(User user, Integer type, MultipartFile file) {
         String msg = "导入内容为空，请检查！";
@@ -713,8 +860,9 @@ public class BalanceServiceImpl implements BalanceService {
                 String username = list.get(0);
                 String platform = list.get(1);
                 String params = list.get(2);
-                String times = list.get(3);
-                String url = list.get(4);
+                String withdraw = list.get(3);
+                String times = list.get(4);
+                String url = list.get(5);
                 if (StringUtils.isEmpty(username) || StringUtils.isEmpty(platform) || StringUtils.isEmpty(params)) {
                     errors.add(i);
                     continue;
@@ -729,16 +877,21 @@ public class BalanceServiceImpl implements BalanceService {
                 pojo.setPlatform(platform);
                 pojo.setWechat(username);
                 pojo.setParams(params);
+                pojo.setWithdraw(withdraw);
                 pojo.setTimes(time);
                 pojo.setType(type);
 
                 if (StringUtils.isEmpty(url)) {
-                    if ("瞎转".equals(platform)) {
+                    if (XIAZHUAN.equals(platform)) {
                         url = getXiaZhuanUrl(params);
-                    } else if ("无敌赚".equals(platform)) {
+                    } else if (WUDIZHUAN.equals(platform)) {
                         url = getWudiZhuanUrl(params);
-                    } else if ("牛逼赚".equals(platform)) {
+                    } else if (NIUBIZHUAN.equals(platform)) {
                         url = getNiubiZhuanUrl(params);
+                    } else if (CHAORENZHUAN.equals(platform)) {
+                        url = getSuperZhuanUrl(params, withdraw);
+                    } else if (AICHUAN.equals(platform)) {
+                        url = getAiChuanUrl(params, withdraw);
                     }
                 }
                 pojo.setUrl(url);

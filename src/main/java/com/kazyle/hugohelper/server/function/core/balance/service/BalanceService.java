@@ -26,7 +26,7 @@ public interface BalanceService {
 
     void updateDate(Long[] ids);
 
-    void saveBalance(Long userId, String platform, String username, Integer type, String params);
+    void saveBalance(Long userId, String platform, String username, Integer type, String params, String withdraw);
 
     String getWithdrawUrl(Long id) throws IOException;
 
@@ -37,4 +37,6 @@ public interface BalanceService {
     void updateArticle(Long id);
 
     void updateLink(Long[] ids) throws IOException;
+
+    void updateArticles(Long[] ids);
 }

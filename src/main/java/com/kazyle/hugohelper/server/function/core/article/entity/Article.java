@@ -41,6 +41,8 @@ public class Article implements Serializable {
 
     private String params;
 
+    private String withdraw;
+
     public Long getId() {
         return id;
     }
@@ -143,5 +145,13 @@ public class Article implements Serializable {
 
     public void setHold(Integer hold) {
         this.hold = hold;
+    }
+
+    public String getWithdraw() {
+        return withdraw;
+    }
+
+    public void setWithdraw(String withdraw) {
+        this.withdraw = withdraw;
     }
 }

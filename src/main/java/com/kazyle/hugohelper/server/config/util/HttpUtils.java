@@ -196,6 +196,52 @@ public class HttpUtils {
         return body;
     }
 
+    /**
+     * POST请求
+     *
+     * @param url       资源地址
+     * @return
+     * @throws ParseException
+     * @throws IOException
+     */
+    public static String postByCookieAndUserAgent(String url, String cookie, String userAgent, Map<String, String> map) throws ParseException, IOException {
+        String body = "";
+
+        //创建httpclient对象
+        CloseableHttpClient client = HttpClients.createDefault();
+        //创建post方式请求对象
+        HttpPost httpPost = new HttpPost(url);
+
+        //装填参数
+        List<NameValuePair> nvps = new ArrayList<>();
+        if(map!=null){
+            for (Map.Entry<String, String> entry : map.entrySet()) {
+                nvps.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+            }
+        }
+        //设置参数到请求对象中
+        httpPost.setEntity(new UrlEncodedFormEntity(nvps, "utf-8"));
+
+        //设置header信息
+        //指定报文头【Content-type】、【User-Agent】
+        httpPost.setHeader("Content-type", "application/x-www-form-urlencoded");
+        httpPost.setHeader("Cookie", cookie);
+        httpPost.setHeader("User-Agent", userAgent);
+
+        //执行请求操作，并拿到结果（同步阻塞）
+        CloseableHttpResponse response = client.execute(httpPost);
+        //获取结果实体
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            //按指定编码转换结果实体为String类型
+            body = EntityUtils.toString(entity, "utf-8");
+        }
+        EntityUtils.consume(entity);
+        //释放链接
+        response.close();
+        return body;
+    }
+
     public static Map<String, String> getParamMap(String param) {
         Map<String, String> map = new HashMap<>();
         if (org.apache.commons.lang3.StringUtils.isBlank(param)) {
@@ -209,5 +255,26 @@ public class HttpUtils {
             }
         }
         return map;
+    }
+
+    public static String getByCookieAndUserAgent(String url, String cookies, String userAgent) throws IOException {
+        String body = "";
+        //创建httpclient对象
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet(url);
+        //执行请求操作，并拿到结果（同步阻塞）
+        httpGet.setHeader("Cookie", cookies);
+        httpGet.setHeader("User-Agent", userAgent);
+        CloseableHttpResponse response = client.execute(httpGet);
+        //获取结果实体
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            //按指定编码转换结果实体为String类型
+            body = EntityUtils.toString(entity, "utf-8");
+        }
+        EntityUtils.consume(entity);
+        //释放链接
+        response.close();
+        return body;
     }
 }

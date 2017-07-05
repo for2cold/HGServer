@@ -274,7 +274,7 @@
                 alert('请先勾选要删除的数据');
                 return false;
             }
-            var url = '${ctx}/front/balance/updateStatus?ids=' + ids;
+            var url = '${ctx}/front/balance/updateStatus?' + ids;
             $.post(url).done(function(resp) {
                 if (resp.code == 1000) {
                     $.gritter.add({
@@ -512,7 +512,7 @@
             $row.find('.btn-withdraw').attr('href', href);
             $row.find('.btn-record').attr('data-id', balance.id);
             $row.find('.btn-update').attr('data-id', balance.id);
-            if ("瞎转" == platform || "无敌赚" == platform || "牛逼赚" == platform) {
+            if ("瞎转" == platform || "无敌赚" == platform || "牛逼赚" == platform || "超人赚" == platform || "爱传" == platform) {
                 $row.find('.btn-withdraw').show();
             }
             if (platform == '无敌赚') {
