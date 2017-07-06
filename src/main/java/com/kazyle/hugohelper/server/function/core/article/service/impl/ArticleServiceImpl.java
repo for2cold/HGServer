@@ -123,6 +123,7 @@ public class ArticleServiceImpl implements ArticleService {
             platforms.add("超人赚");
             platforms.add("爱传");
             platforms.add("爱转发");
+            platforms.add("知晓");
         } else {
             platforms.add(platform);
         }
