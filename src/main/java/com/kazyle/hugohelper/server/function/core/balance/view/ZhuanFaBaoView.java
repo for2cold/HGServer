@@ -111,4 +111,27 @@ public class ZhuanFaBaoView {
             this.dayScore = dayScore;
         }
     }
+
+    public static class ZhiXiaoInfoView {
+
+        private String my_money;
+
+        private String my_today_money;
+
+        public String getMy_money() {
+            return my_money;
+        }
+
+        public void setMy_money(String my_money) {
+            this.my_money = my_money;
+        }
+
+        public String getMy_today_money() {
+            return my_today_money;
+        }
+
+        public void setMy_today_money(String my_today_money) {
+            this.my_today_money = my_today_money;
+        }
+    }
 }

@@ -60,6 +60,7 @@ public class BalanceServiceImpl implements BalanceService {
     private static final String AIZHUANFA = "爱转发";
     private static final String KUAIDEBAO = "快得宝";
     private static final String KUAIZHUANFA = "快转发";
+    private static final String ZHIXIAO = "知晓";
 
     private static final String XIA_ZHUAN_URL = "http://xiazhuan.duoshoutuan.com/shell/android.php";
     private static final String WUDI_ZHUAN_URL = "http://wudizhuan.duoshoutuan.com/shell/android.php";
@@ -74,6 +75,8 @@ public class BalanceServiceImpl implements BalanceService {
     private static final String AI_ZHUAN_FA_INFO_URL = "http://jk.aizhuanfa.com.cn/index/index.php?c=index&m=userArticle&a=myInfo";
     private static final String SUPER_ZHUAN_URL = "http://app.584230.com/?cur_plat=android";
     private static final String AI_CHUAN_URL = "http://app.aichuan8.com/?cur_plat=android";
+    private static final String ZHIXIAO_LOGIN_URL = "http://api.yulela.net/index/index.php?c=index&m=user&a=new_login";
+    private static final String ZHIXIAO_INFO_URL = "http://api.huolan.net/index/index.php?c=index&m=user&a=get_my_score_info";
 
     private static final String NIUBI_ZHUAN_HOST = "http://niubizhuan.duoshoutuan.com/";
 
@@ -145,6 +148,10 @@ public class BalanceServiceImpl implements BalanceService {
             }
             case AICHUAN: {
                 getAiChuan(balances);
+                break;
+            }
+            case ZHIXIAO: {
+                getZhiXiao(balances);
                 break;
             }
 
@@ -241,6 +248,59 @@ public class BalanceServiceImpl implements BalanceService {
                 ZhuanFaBaoView.ZhuanFaBaoInfoView info = JSON.parseObject(obj.toJSONString(), ZhuanFaBaoView.ZhuanFaBaoInfoView.class);
                 balance.setAmount(info.getScore());
                 balance.setToday(info.getDayScore());
+                // 处理链接账号
+                getArticleStatus(balance);
+                try {
+                    // 超过指定金额，自动停止链接
+                    double day_jifenbao = Double.parseDouble(balance.getToday());
+                    if (day_jifenbao >= zhuanfabaoDayMoney) {
+                        articleRepository.autoStop(balance.getPlatform(), balance.getUsername(), balance.getType(), balance.getUserId());
+                    }
+                } catch (NumberFormatException e) {
+                }
+                // 更新参数
+                if (update) {
+                    balanceRepository.updateWithdraw(balance.getId(), params);
+                }
+            } catch (Exception e) {
+
+            }
+        }
+    }
+
+    private void getZhiXiao(List<Balance> balances) {
+        for (Balance balance : balances) {
+            String params = balance.getWithdraw();
+            try {
+                Map<String, String> map = Maps.newHashMap();
+                String result;
+                ZhuanFaBaoView view = null;
+                boolean update = false;
+                if (StringUtils.isEmpty(params)) {
+                    // 自动登录，获取token参数
+                    params = getZhuanFaBaoToken(balance, params, ZHIXIAO_LOGIN_URL);
+                    update = true;
+                }
+                map = HttpUtils.getParamMap(params);
+                if (map.isEmpty()) {
+                    balance.setAmount("-1");
+                    continue;
+                }
+                result = HttpUtils.postUserAgent(ZHIXIAO_INFO_URL, map);
+                view = JSON.parseObject(result, ZhuanFaBaoView.class);
+                if (view.getStatus() != 200) {
+                    // 重新获取token
+                    params = getZhuanFaBaoToken(balance, params, ZHIXIAO_LOGIN_URL);
+                    map = HttpUtils.getParamMap(params);
+                    // 重新发起请求
+                    result = HttpUtils.postUserAgent(ZHUAN_FA_BAO_INFO_URL, map);
+                    view = JSON.parseObject(result, ZhuanFaBaoView.class);
+                    update = true;
+                }
+                JSONObject obj = (JSONObject) view.getData();
+                ZhuanFaBaoView.ZhiXiaoInfoView info = JSON.parseObject(obj.toJSONString(), ZhuanFaBaoView.ZhiXiaoInfoView.class);
+                balance.setAmount(info.getMy_money());
+                balance.setToday(info.getMy_today_money());
                 // 处理链接账号
                 getArticleStatus(balance);
                 try {
@@ -655,6 +715,10 @@ public class BalanceServiceImpl implements BalanceService {
             pojo.setUserId(userId);
             pojo.setPlatform(platform);
             pojo.setType(type);
+            params = params.replaceAll("\r|\n", "");
+            if (StringUtils.isNotEmpty(withdraw)) {
+                withdraw = withdraw.replaceAll("\r|\n", "");
+            }
             pojo.setParams(params);
             pojo.setWithdraw(withdraw);
             pojo.setUsername(username);
