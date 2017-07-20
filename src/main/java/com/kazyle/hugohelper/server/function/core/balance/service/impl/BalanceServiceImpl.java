@@ -1,6 +1,7 @@
 package com.kazyle.hugohelper.server.function.core.balance.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.kazyle.hugohelper.server.config.util.ExcelUtils;
@@ -88,6 +89,12 @@ public class BalanceServiceImpl implements BalanceService {
     private static final String NIUBI_ZHUAN_WIDTHDRAW = "&act=url&network=WIFI&signature=82024da00302010202046fc175f5300d&version=9&";
     private static final String SUPER_ZHUAN_WITHDRAW = "http://app.584230.com/withdraw/index.html";
     private static final String AI_CHUAN_WITHDRAW = "http://app.aichuan8.com/withdraw/index.html";
+
+    private static final String ZHAO_CAI_TU_ARTICLE_URL = "http://zqw.2662126.com/App/Article/article";
+    private static final String ZHAO_CAI_TU_READ_URL = "http://zqw.2662126.com/App/Index/read";
+    private static final String ZHAO_CAI_TU_SHARE_URL = "http://zqw.2662126.com/App/Article/gshare";
+    private static final String ZHUAN_FA_BAO_ARTICLE_URL = "http://api.jubaokeji.cn/index/index.php?c=index&m=userArticle&a=articleListNew";
+    private static final String ZHUAN_FA_BAO_SHARE_URL = "http://api.jubaokeji.cn/index/index.php?c=index&m=userArticle&a=get_notice_info_new";
 
     // 初始化提现参数
     private static final boolean init = false;
@@ -826,6 +833,13 @@ public class BalanceServiceImpl implements BalanceService {
                     url = getSuperZhuanUrl(pojo.getParams(), pojo.getWithdraw());
                 } else if (AICHUAN.equals(pojo.getPlatform())) {
                     url = getAiChuanUrl(pojo.getParams(), pojo.getWithdraw());
+                } else if (ZHAOCAITU.equals(pojo.getPlatform())) {
+                    url = getZhaoCaiTuUrl(pojo.getParams(), pojo.getWithdraw());
+                } else if (ZHUANFABAO.equals(pojo.getPlatform())) {
+                    url = getZhuanFaBaoUrl(pojo.getParams(), pojo.getWithdraw());
+                }
+                if (url == null) {
+                    continue;
                 }
                 Date date = new Date();
                 // 更新文章状态
@@ -847,6 +861,76 @@ public class BalanceServiceImpl implements BalanceService {
                 }
             }
         }
+    }
+
+    private String getZhuanFaBaoUrl(String params, String withdraw) {
+        try {
+            String only = HttpUtils.getParamMap(params).get("only");
+            Map<String, String> paramMap = HttpUtils.getParamMap(withdraw);
+            String uid = paramMap.get("uid");
+            paramMap.put("xsign", "200.39063");
+            paramMap.put("ysign", "1027.5");
+            paramMap.put("type", "1");
+            paramMap.put("page", "1");
+            paramMap.put("end_time", "");
+            paramMap.put("first_time", "");
+            paramMap.put("action", "下拉刷新");
+            paramMap.put("only", only);
+            paramMap.put("cid", "1");
+            paramMap.put("from", "搞笑");
+            String result = HttpUtils.postUserAgent(ZHUAN_FA_BAO_ARTICLE_URL, paramMap, "ZHIXIAO_A");
+            Map<String, Object> resultMap = JSON.parseObject(result, Map.class);
+            JSONArray obj = (JSONArray) resultMap.get("data");
+            List<ZhuanFaBaoView.ZhuanFaBaoArticle> articleList = JSON.parseArray(obj.toJSONString(), ZhuanFaBaoView.ZhuanFaBaoArticle.class);
+            Random random = new Random();
+            int index = random.nextInt(articleList.size());
+            String nid = articleList.get(index).getNid();
+            paramMap.clear();
+            paramMap.put("nid", nid);
+            paramMap.put("type", "1");
+            paramMap.put("uid", uid);
+
+            result = HttpUtils.postUserAgent(ZHUAN_FA_BAO_SHARE_URL, paramMap, "ZHIXIAO_A");
+            resultMap = JSON.parseObject(result, Map.class);
+            Map<String, String> data = (Map<String, String>) resultMap.get("data");
+            return data.get("link");
+        } catch (IOException e) {
+        }
+        return null;
+    }
+
+    private String getZhaoCaiTuUrl(String params, String withdraw) {
+        try {
+            Map<String, String> paramMap = HttpUtils.getParamMap(withdraw);
+            String uid = paramMap.get("uid");
+            paramMap.clear();
+            paramMap.put("c_id", "-1");
+            paramMap.put("pageIndex", "1");
+            paramMap.put("type", "1");
+            paramMap.put("uid", uid);
+            String result = HttpUtils.post(ZHAO_CAI_TU_ARTICLE_URL, paramMap);
+            Map<String, Object> resultMap = JSON.parseObject(result, Map.class);
+            JSONArray obj = (JSONArray) resultMap.get("data");
+            List<ZhaoCaiTuArticle> articleList = JSON.parseArray(obj.toJSONString(), ZhaoCaiTuArticle.class);
+            Random random = new Random();
+            int index = random.nextInt(articleList.size());
+            Long aid = articleList.get(index).getId();
+            // 发起已阅读请求
+            paramMap.clear();
+            paramMap.put("aid", aid + "");
+            paramMap.put("uid", uid);
+            HttpUtils.post(ZHAO_CAI_TU_READ_URL, paramMap);
+            paramMap.clear();
+            paramMap.put("id", aid + "");
+            paramMap.put("uid", uid);
+            paramMap.put("type", "");
+            result = HttpUtils.post(ZHAO_CAI_TU_SHARE_URL, paramMap);
+            resultMap = JSON.parseObject(result, Map.class);
+            Map<String, String> data = (Map) resultMap.get("data");
+            return data.get("ys");
+        } catch (IOException e) {
+        }
+        return null;
     }
 
     private String getAiChuanUrl(String cookie, String userAgent) throws IOException {

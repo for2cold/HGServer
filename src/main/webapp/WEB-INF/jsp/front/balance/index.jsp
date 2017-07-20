@@ -24,9 +24,9 @@
         <div class="email-btn-row">
             <a href="javascript:;" id="btn-remove" class="btn btn-sm btn-danger"><i class="fa m-r-5 fa-trash"></i>删除</a>
             <a href="javascript:;" id="btn-exchange" class="btn btn-sm btn-success"><i class="fa fa-exchange m-r-5"></i> 存档</a>
-            <a href="javascript:;" id="btn-import" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 批量导入账号</a>
-            <a href="javascript:;" id="btn-refresh" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 批量更新链接</a>
-            <a href="javascript:;" id="btn-update" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 批量更新状态</a>
+            <a href="javascript:;" id="btn-import" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 导入账号</a>
+            <a href="javascript:;" id="btn-refresh" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 更新链接</a>
+            <a href="javascript:;" id="btn-update" class="btn btn-sm btn-success"><i class="fa fa-plus m-r-5"></i> 更新状态</a>
             <a href="javascript:;" id="btn-search" class="btn btn-sm btn-primary"><i class="fa fa-search m-r-5"></i> 筛选</a>
             <a href="javascript:;" id="btn-query" class="btn btn-sm btn-info"><i class="fa fa-refresh m-r-5"></i> 刷新</a>
         </div>

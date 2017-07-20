@@ -86,6 +86,52 @@ public class HttpUtils {
      * @throws ParseException
      * @throws IOException
      */
+    public static String postUserAgent(String url, Map<String,String> map, String userAgent) throws ParseException, IOException {
+        String body = "";
+
+        //创建httpclient对象
+        CloseableHttpClient client = HttpClients.createDefault();
+        //创建post方式请求对象
+        HttpPost httpPost = new HttpPost(url);
+
+        //装填参数
+        List<NameValuePair> nvps = new ArrayList<>();
+        if(map!=null){
+            for (Map.Entry<String, String> entry : map.entrySet()) {
+                nvps.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+            }
+        }
+        //设置参数到请求对象中
+        httpPost.setEntity(new UrlEncodedFormEntity(nvps, "utf-8"));
+
+        //设置header信息
+        //指定报文头【Content-type】、【User-Agent】
+        httpPost.setHeader("Content-type", "application/x-www-form-urlencoded");
+        httpPost.setHeader("User-Agent", userAgent);
+
+        //执行请求操作，并拿到结果（同步阻塞）
+        CloseableHttpResponse response = client.execute(httpPost);
+        //获取结果实体
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            //按指定编码转换结果实体为String类型
+            body = EntityUtils.toString(entity, "utf-8");
+        }
+        EntityUtils.consume(entity);
+        //释放链接
+        response.close();
+        return body;
+    }
+
+    /**
+     * POST请求
+     *
+     * @param url       资源地址
+     * @param map   参数列表
+     * @return
+     * @throws ParseException
+     * @throws IOException
+     */
     public static String postUserAgent(String url, Map<String,String> map) throws ParseException, IOException {
         String body = "";
 

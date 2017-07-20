@@ -134,4 +134,24 @@ public class ZhuanFaBaoView {
             this.my_today_money = my_today_money;
         }
     }
+
+    public static class ZhuanFaBaoArticle {
+
+        private String nid;
+
+        public String getNid() {
+            return nid;
+        }
+
+        public void setNid(String nid) {
+            this.nid = nid;
+        }
+
+        @Override
+        public String toString() {
+            return "ZhuanFaBaoArticle{" +
+                    "nid='" + nid + '\'' +
+                    '}';
+        }
+    }
 }
