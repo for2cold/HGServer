@@ -1053,6 +1053,9 @@ public class BalanceServiceImpl implements BalanceService {
                         url = getZhuanFaBaoUrl(params, withdraw);
                     }
                 }
+                if (StringUtils.isEmpty(url)) {
+                    continue;
+                }
                 pojo.setUrl(url);
 
                 articleService.save(user, pojo);
