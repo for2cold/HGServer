@@ -1031,15 +1031,26 @@ public class BalanceServiceImpl implements BalanceService {
 
                 if (StringUtils.isEmpty(url)) {
                     if (XIAZHUAN.equals(platform)) {
+
                         url = getXiaZhuanUrl(params);
                     } else if (WUDIZHUAN.equals(platform)) {
+
                         url = getWudiZhuanUrl(params);
                     } else if (NIUBIZHUAN.equals(platform)) {
+
                         url = getNiubiZhuanUrl(params);
                     } else if (CHAORENZHUAN.equals(platform)) {
+
                         url = getSuperZhuanUrl(params, withdraw);
                     } else if (AICHUAN.equals(platform)) {
+
                         url = getAiChuanUrl(params, withdraw);
+                    } else if (ZHAOCAITU.equals(platform)) {
+
+                        url = getZhaoCaiTuUrl(params, withdraw);
+                    } else if (ZHUANFABAO.equals(platform)) {
+
+                        url = getZhuanFaBaoUrl(params, withdraw);
                     }
                 }
                 pojo.setUrl(url);
